@@ -1,15 +1,16 @@
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using RecipeApp.Api.Middleware;
 using Microsoft.OpenApi.Models;
 using RecipeApp.Api.Data;
 using RecipeApp.Api.Interfaces;
+using RecipeApp.Api.Middleware;
 using RecipeApp.Api.Services;
-using System.Text;
-using FluentValidation;
-using FluentValidation.AspNetCore;
 using RecipeApp.Api.Validators;
+using System.Reflection;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -45,14 +46,42 @@ builder.Services.AddSwaggerGen(c =>
             Array.Empty<string>()
         }
     });
+
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("AllowMobile", policy =>
+        {
+            policy.AllowAnyOrigin()
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
+        });
+    });
+
+    // XML Documentation
+    var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFilename);
+
+    c.IncludeXmlComments(xmlPath);
+});
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowMobile", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
 });
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IRecipeService, RecipeService>();
+
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<CreateRecipeDtoValidator>();
+
 builder.Services.AddAutoMapper(typeof(Program));
 
 var jwtSettings = builder.Configuration.GetSection("Jwt");
@@ -86,13 +115,17 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
 app.UseMiddleware<ExceptionMiddleware>();
 
 app.UseHttpsRedirection();
 
 app.UseStaticFiles();
 
+app.UseCors("AllowMobile");
+
 app.UseAuthentication();
+
 app.UseAuthorization();
 
 app.MapControllers();
