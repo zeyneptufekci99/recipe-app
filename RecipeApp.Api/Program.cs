@@ -7,6 +7,9 @@ using RecipeApp.Api.Data;
 using RecipeApp.Api.Interfaces;
 using RecipeApp.Api.Services;
 using System.Text;
+using FluentValidation;
+using FluentValidation.AspNetCore;
+using RecipeApp.Api.Validators;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -48,6 +51,8 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IRecipeService, RecipeService>();
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddValidatorsFromAssemblyContaining<CreateRecipeDtoValidator>();
 
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 
