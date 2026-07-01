@@ -5,7 +5,12 @@ namespace RecipeApp.Api.Interfaces;
 public interface IRecipeService
 {
     Task<RecipeResponseDto> CreateAsync(CreateRecipeDto dto, Guid userId);
-    Task<List<RecipeResponseDto>> GetAllAsync(Guid userId);
+    Task<List<RecipeResponseDto>> GetAllAsync(
+    Guid userId,
+    string? search,
+    Guid? categoryId,
+    int? difficulty
+    );
     Task<RecipeDetailDto?> GetByIdAsync(Guid id, Guid userId);
     Task<bool> DeleteAsync(Guid id, Guid userId);
     Task<RecipeDetailDto?> UpdateAsync(Guid id, UpdateRecipeDto dto, Guid userId);

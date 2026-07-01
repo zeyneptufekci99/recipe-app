@@ -63,12 +63,33 @@ public class RecipeService : IRecipeService
         };
     }
 
-    public async Task<List<RecipeResponseDto>> GetAllAsync(Guid userId)
+    public async Task<List<RecipeResponseDto>> GetAllAsync( Guid userId, string? search, Guid? categoryId, int? difficulty )
     {
-        return await _context.Recipes
+        var query = _context.Recipes
             .AsNoTracking()
             .Where(r => r.UserId == userId)
             .Include(r => r.Category)
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            query = query.Where(r =>
+                r.Title.ToLower().Contains(search.ToLower()) ||
+                (r.Description != null && r.Description.ToLower().Contains(search.ToLower()))
+            );
+        }
+
+        if (categoryId.HasValue)
+        {
+            query = query.Where(r => r.CategoryId == categoryId.Value);
+        }
+
+        if (difficulty.HasValue)
+        {
+            query = query.Where(r => (int)r.Difficulty == difficulty.Value);
+        }
+
+        return await query
             .OrderByDescending(r => r.CreatedAt)
             .Select(r => new RecipeResponseDto
             {

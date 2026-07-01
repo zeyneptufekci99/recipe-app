@@ -34,7 +34,7 @@ public class RecipeController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll( [FromQuery] string? search, [FromQuery] Guid? categoryId,[FromQuery] int? difficulty)
     {
         var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
@@ -43,7 +43,12 @@ public class RecipeController : ControllerBase
 
         var userId = Guid.Parse(userIdString);
 
-        var recipes = await _recipeService.GetAllAsync(userId);
+        var recipes = await _recipeService.GetAllAsync(
+            userId,
+            search,
+            categoryId,
+            difficulty
+        );
 
         return Ok(recipes);
     }
