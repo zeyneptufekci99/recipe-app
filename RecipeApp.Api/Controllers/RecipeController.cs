@@ -9,7 +9,7 @@ namespace RecipeApp.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class RecipeController : ControllerBase
+public class RecipeController : BaseController
 {
     private readonly IRecipeService _recipeService;
 
@@ -21,14 +21,8 @@ public class RecipeController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create(CreateRecipeDto dto)
     {
-        var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-        if (string.IsNullOrEmpty(userIdString))
-            return Unauthorized();
-
-        var userId = Guid.Parse(userIdString);
-
-        var response = await _recipeService.CreateAsync(dto, userId);
+        var response = await _recipeService.CreateAsync(dto, CurrentUserId);
 
         return Ok(response);
     }
@@ -36,15 +30,9 @@ public class RecipeController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll( [FromQuery] string? search, [FromQuery] Guid? categoryId,[FromQuery] int? difficulty, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
     {
-        var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-        if (string.IsNullOrEmpty(userIdString))
-            return Unauthorized();
-
-        var userId = Guid.Parse(userIdString);
-
+      
         var recipes = await _recipeService.GetAllAsync(
-            userId,
+            CurrentUserId,
             search,
             categoryId,
             difficulty,
@@ -59,14 +47,8 @@ public class RecipeController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(Guid id)
     {
-        var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-        if (string.IsNullOrEmpty(userIdString))
-            return Unauthorized();
-
-        var userId = Guid.Parse(userIdString);
-
-        var recipe = await _recipeService.GetByIdAsync(id, userId);
+        var recipe = await _recipeService.GetByIdAsync(id, CurrentUserId);
 
         if (recipe == null)
             return NotFound("Tarif bulunamadı.");
@@ -77,14 +59,8 @@ public class RecipeController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-        if (string.IsNullOrEmpty(userIdString))
-            return Unauthorized();
-
-        var userId = Guid.Parse(userIdString);
-
-        var result = await _recipeService.DeleteAsync(id, userId);
+      
+        var result = await _recipeService.DeleteAsync(id, CurrentUserId);
 
         if (!result)
             return NotFound("Tarif bulunamadı.");
@@ -95,14 +71,8 @@ public class RecipeController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(Guid id, UpdateRecipeDto dto)
     {
-        var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-        if (string.IsNullOrEmpty(userIdString))
-            return Unauthorized();
-
-        var userId = Guid.Parse(userIdString);
-
-        var recipe = await _recipeService.UpdateAsync(id, dto, userId);
+        
+        var recipe = await _recipeService.UpdateAsync(id, dto, CurrentUserId);
 
         if (recipe == null)
             return NotFound("Tarif bulunamadı.");
@@ -114,14 +84,7 @@ public class RecipeController : ControllerBase
     [HttpPatch("{id}/favorite")]
     public async Task<IActionResult> ToggleFavorite(Guid id)
     {
-        var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-        if (string.IsNullOrEmpty(userIdString))
-            return Unauthorized();
-
-        var userId = Guid.Parse(userIdString);
-
-        var recipe = await _recipeService.ToggleFavoriteAsync(id, userId);
+        var recipe = await _recipeService.ToggleFavoriteAsync(id, CurrentUserId);
 
         if (recipe == null)
             return NotFound("Tarif bulunamadı.");
