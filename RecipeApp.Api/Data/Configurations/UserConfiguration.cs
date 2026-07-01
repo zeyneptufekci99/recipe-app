@@ -26,7 +26,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
 
         builder.HasMany(u => u.Recipes)
             .WithOne(r => r.User)
-            .HasForeignKey(r => r.User)
+            .HasForeignKey(r => r.UserId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }
