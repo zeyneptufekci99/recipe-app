@@ -76,7 +76,7 @@ public class RecipeService : IRecipeService
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
-      
+    
         return new PagedResult<RecipeResponseDto>
         {
             Items = _mapper.Map<List<RecipeResponseDto>>(recipes),
