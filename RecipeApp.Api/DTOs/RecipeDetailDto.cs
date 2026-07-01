@@ -17,4 +17,5 @@ public class RecipeDetailDto
     public string? SourceUrl { get; set; }
     public List<IngredientResponseDto> Ingredients { get; set; } = new();
     public List<RecipeStepResponseDto> Steps { get; set; } = new();
+    public bool IsFavorite { get; set; }
 }

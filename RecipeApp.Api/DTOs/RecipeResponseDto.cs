@@ -19,4 +19,5 @@ public class RecipeResponseDto
     public int Servings { get; set; }
 
     public Difficulty Difficulty { get; set; }
+    public bool IsFavorite { get; set; } = false;
 }

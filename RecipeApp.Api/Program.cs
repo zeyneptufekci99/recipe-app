@@ -53,6 +53,7 @@ builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IRecipeService, RecipeService>();
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<CreateRecipeDtoValidator>();
+builder.Services.AddAutoMapper(typeof(Program));
 
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 

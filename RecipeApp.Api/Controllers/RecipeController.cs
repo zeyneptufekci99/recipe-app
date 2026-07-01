@@ -109,4 +109,23 @@ public class RecipeController : ControllerBase
 
         return Ok(recipe);
     }
+
+
+    [HttpPatch("{id}/favorite")]
+    public async Task<IActionResult> ToggleFavorite(Guid id)
+    {
+        var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (string.IsNullOrEmpty(userIdString))
+            return Unauthorized();
+
+        var userId = Guid.Parse(userIdString);
+
+        var recipe = await _recipeService.ToggleFavoriteAsync(id, userId);
+
+        if (recipe == null)
+            return NotFound("Tarif bulunamadı.");
+
+        return Ok(recipe);
+    }
 }

@@ -1,18 +1,22 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using RecipeApp.Api.Common;
 using RecipeApp.Api.Data;
 using RecipeApp.Api.DTOs;
 using RecipeApp.Api.Interfaces;
 using RecipeApp.Api.Models;
+
 namespace RecipeApp.Api.Services;
 
 public class RecipeService : IRecipeService
 {
     private readonly AppDbContext _context;
+    private readonly IMapper _mapper;
 
-    public RecipeService(AppDbContext context)
+    public RecipeService(AppDbContext context, IMapper mapper)
     {
         _context = context;
+        _mapper = mapper;
     }
 
     public async Task<RecipeResponseDto> CreateAsync(CreateRecipeDto dto, Guid userId)
@@ -50,27 +54,19 @@ public class RecipeService : IRecipeService
             .Include(r => r.Category)
             .FirstAsync(r => r.Id == recipe.Id);
 
-        return new RecipeResponseDto
-        {
-            Id = createdRecipe.Id,
-            Title = createdRecipe.Title,
-            ImageUrl = createdRecipe.ImageUrl,
-            Category = createdRecipe.Category.Name,
-            PrepTime = createdRecipe.PrepTime,
-            CookTime = createdRecipe.CookTime,
-            Servings = createdRecipe.Servings,
-            Difficulty = createdRecipe.Difficulty
-        };
+        return _mapper.Map<RecipeResponseDto>(createdRecipe);
     }
 
-    public async Task<PagedResult<RecipeResponseDto>> GetAllAsync( Guid userId, string? search, Guid? categoryId, int? difficulty, int page, int pageSize )
+    public async Task<PagedResult<RecipeResponseDto>> GetAllAsync(
+        Guid userId,
+        string? search,
+        Guid? categoryId,
+        int? difficulty,
+        int page,
+        int pageSize)
     {
-
-        if (page <= 0)
-            page = 1;
-
-        if (pageSize <= 0)
-            pageSize = 10;
+        if (page <= 0) page = 1;
+        if (pageSize <= 0) pageSize = 10;
 
         var query = _context.Recipes
             .AsNoTracking()
@@ -84,42 +80,26 @@ public class RecipeService : IRecipeService
 
             query = query.Where(r =>
                 r.Title.ToLower().Contains(loweredSearch) ||
-                (r.Description != null && r.Description.ToLower().Contains(loweredSearch))
-            );
+                (r.Description != null && r.Description.ToLower().Contains(loweredSearch)));
         }
 
         if (categoryId.HasValue)
-        {
             query = query.Where(r => r.CategoryId == categoryId.Value);
-        }
 
         if (difficulty.HasValue)
-        {
             query = query.Where(r => (int)r.Difficulty == difficulty.Value);
-        }
 
         var totalCount = await query.CountAsync();
 
-        var items = await query
-        .OrderByDescending(r => r.CreatedAt)
-        .Skip((page - 1) * pageSize)
-        .Take(pageSize)
-        .Select(r => new RecipeResponseDto
-        {
-            Id = r.Id,
-            Title = r.Title,
-            ImageUrl = r.ImageUrl,
-            Category = r.Category.Name,
-            PrepTime = r.PrepTime,
-            CookTime = r.CookTime,
-            Servings = r.Servings,
-            Difficulty = r.Difficulty
-        })
-        .ToListAsync();
+        var recipes = await query
+            .OrderByDescending(r => r.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
 
         return new PagedResult<RecipeResponseDto>
         {
-            Items = items,
+            Items = _mapper.Map<List<RecipeResponseDto>>(recipes),
             Page = page,
             PageSize = pageSize,
             TotalCount = totalCount,
@@ -129,41 +109,14 @@ public class RecipeService : IRecipeService
 
     public async Task<RecipeDetailDto?> GetByIdAsync(Guid id, Guid userId)
     {
-        return await _context.Recipes
+        var recipe = await _context.Recipes
             .AsNoTracking()
-            .Where(r => r.Id == id && r.UserId == userId)
             .Include(r => r.Category)
             .Include(r => r.Ingredients)
             .Include(r => r.Steps)
-            .Select(r => new RecipeDetailDto
-            {
-                Id = r.Id,
-                Title = r.Title,
-                Description = r.Description,
-                ImageUrl = r.ImageUrl,
-                Category = r.Category.Name,
-                PrepTime = r.PrepTime,
-                CookTime = r.CookTime,
-                Servings = r.Servings,
-                Difficulty = r.Difficulty,
-                SourceType = r.SourceType,
-                SourceUrl = r.SourceUrl,
-                Ingredients = r.Ingredients.Select(i => new IngredientResponseDto
-                {
-                    Id = i.Id,
-                    Name = i.Name,
-                    Amount = i.Amount
-                }).ToList(),
-                Steps = r.Steps
-                    .OrderBy(s => s.StepNumber)
-                    .Select(s => new RecipeStepResponseDto
-                    {
-                        Id = s.Id,
-                        StepNumber = s.StepNumber,
-                        Description = s.Description
-                    }).ToList()
-            })
-            .FirstOrDefaultAsync();
+            .FirstOrDefaultAsync(r => r.Id == id && r.UserId == userId);
+
+        return recipe == null ? null : _mapper.Map<RecipeDetailDto>(recipe);
     }
 
     public async Task<bool> DeleteAsync(Guid id, Guid userId)
@@ -220,5 +173,22 @@ public class RecipeService : IRecipeService
         await _context.SaveChangesAsync();
 
         return await GetByIdAsync(recipe.Id, userId);
+    }
+
+    public async Task<RecipeResponseDto?> ToggleFavoriteAsync(Guid id, Guid userId)
+    {
+        var recipe = await _context.Recipes
+            .Include(r => r.Category)
+            .FirstOrDefaultAsync(r => r.Id == id && r.UserId == userId);
+
+        if (recipe == null)
+            return null;
+
+        recipe.IsFavorite = !recipe.IsFavorite;
+        recipe.UpdatedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+
+        return _mapper.Map<RecipeResponseDto>(recipe);
     }
 }
