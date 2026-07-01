@@ -17,6 +17,7 @@ public class RecipeService : IRecipeService
     {
         _context = context;
         _mapper = mapper;
+       
     }
 
     public async Task<RecipeResponseDto> CreateAsync(CreateRecipeDto dto, Guid userId)
@@ -75,7 +76,7 @@ public class RecipeService : IRecipeService
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
-
+      
         return new PagedResult<RecipeResponseDto>
         {
             Items = _mapper.Map<List<RecipeResponseDto>>(recipes),
