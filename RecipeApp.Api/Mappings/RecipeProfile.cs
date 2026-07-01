@@ -19,7 +19,12 @@ public class RecipeProfile : Profile
                 opt => opt.MapFrom(src => src.Steps.OrderBy(s => s.StepNumber)));
 
         CreateMap<Ingredient, IngredientResponseDto>();
-
         CreateMap<RecipeStep, RecipeStepResponseDto>();
+
+        CreateMap<CreateRecipeDto, Recipe>();
+        CreateMap<CreateIngredientDto, Ingredient>();
+        CreateMap<CreateRecipeStepDto, RecipeStep>();
+
+        CreateMap<UpdateRecipeDto, Recipe>();
     }
 }

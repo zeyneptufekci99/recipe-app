@@ -21,30 +21,9 @@ public class RecipeService : IRecipeService
 
     public async Task<RecipeResponseDto> CreateAsync(CreateRecipeDto dto, Guid userId)
     {
-        var recipe = new Recipe
-        {
-            UserId = userId,
-            Title = dto.Title,
-            Description = dto.Description,
-            ImageUrl = dto.ImageUrl,
-            PrepTime = dto.PrepTime,
-            CookTime = dto.CookTime,
-            Servings = dto.Servings,
-            Difficulty = dto.Difficulty,
-            CategoryId = dto.CategoryId,
-            SourceType = dto.SourceType,
-            SourceUrl = dto.SourceUrl,
-            Ingredients = dto.Ingredients.Select(i => new Ingredient
-            {
-                Name = i.Name,
-                Amount = i.Amount
-            }).ToList(),
-            Steps = dto.Steps.Select(s => new RecipeStep
-            {
-                StepNumber = s.StepNumber,
-                Description = s.Description
-            }).ToList()
-        };
+        var recipe = _mapper.Map<Recipe>(dto);
+
+        recipe.UserId = userId;
 
         _context.Recipes.Add(recipe);
         await _context.SaveChangesAsync();
