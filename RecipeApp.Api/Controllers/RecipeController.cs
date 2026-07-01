@@ -34,7 +34,7 @@ public class RecipeController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAll( [FromQuery] string? search, [FromQuery] Guid? categoryId,[FromQuery] int? difficulty)
+    public async Task<IActionResult> GetAll( [FromQuery] string? search, [FromQuery] Guid? categoryId,[FromQuery] int? difficulty, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
     {
         var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
@@ -47,7 +47,10 @@ public class RecipeController : ControllerBase
             userId,
             search,
             categoryId,
-            difficulty
+            difficulty,
+            page,
+            pageSize
+
         );
 
         return Ok(recipes);

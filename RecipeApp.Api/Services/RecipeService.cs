@@ -1,9 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using RecipeApp.Api.Common;
 using RecipeApp.Api.Data;
 using RecipeApp.Api.DTOs;
 using RecipeApp.Api.Interfaces;
 using RecipeApp.Api.Models;
-
 namespace RecipeApp.Api.Services;
 
 public class RecipeService : IRecipeService
@@ -63,8 +63,15 @@ public class RecipeService : IRecipeService
         };
     }
 
-    public async Task<List<RecipeResponseDto>> GetAllAsync( Guid userId, string? search, Guid? categoryId, int? difficulty )
+    public async Task<PagedResult<RecipeResponseDto>> GetAllAsync( Guid userId, string? search, Guid? categoryId, int? difficulty, int page, int pageSize )
     {
+
+        if (page <= 0)
+            page = 1;
+
+        if (pageSize <= 0)
+            pageSize = 10;
+
         var query = _context.Recipes
             .AsNoTracking()
             .Where(r => r.UserId == userId)
@@ -73,9 +80,11 @@ public class RecipeService : IRecipeService
 
         if (!string.IsNullOrWhiteSpace(search))
         {
+            var loweredSearch = search.ToLower();
+
             query = query.Where(r =>
-                r.Title.ToLower().Contains(search.ToLower()) ||
-                (r.Description != null && r.Description.ToLower().Contains(search.ToLower()))
+                r.Title.ToLower().Contains(loweredSearch) ||
+                (r.Description != null && r.Description.ToLower().Contains(loweredSearch))
             );
         }
 
@@ -89,20 +98,33 @@ public class RecipeService : IRecipeService
             query = query.Where(r => (int)r.Difficulty == difficulty.Value);
         }
 
-        return await query
-            .OrderByDescending(r => r.CreatedAt)
-            .Select(r => new RecipeResponseDto
-            {
-                Id = r.Id,
-                Title = r.Title,
-                ImageUrl = r.ImageUrl,
-                Category = r.Category.Name,
-                PrepTime = r.PrepTime,
-                CookTime = r.CookTime,
-                Servings = r.Servings,
-                Difficulty = r.Difficulty
-            })
-            .ToListAsync();
+        var totalCount = await query.CountAsync();
+
+        var items = await query
+        .OrderByDescending(r => r.CreatedAt)
+        .Skip((page - 1) * pageSize)
+        .Take(pageSize)
+        .Select(r => new RecipeResponseDto
+        {
+            Id = r.Id,
+            Title = r.Title,
+            ImageUrl = r.ImageUrl,
+            Category = r.Category.Name,
+            PrepTime = r.PrepTime,
+            CookTime = r.CookTime,
+            Servings = r.Servings,
+            Difficulty = r.Difficulty
+        })
+        .ToListAsync();
+
+        return new PagedResult<RecipeResponseDto>
+        {
+            Items = items,
+            Page = page,
+            PageSize = pageSize,
+            TotalCount = totalCount,
+            TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize)
+        };
     }
 
     public async Task<RecipeDetailDto?> GetByIdAsync(Guid id, Guid userId)
