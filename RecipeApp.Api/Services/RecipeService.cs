@@ -136,4 +136,46 @@ public class RecipeService : IRecipeService
 
         return true;
     }
+
+    public async Task<RecipeDetailDto?> UpdateAsync(Guid id, UpdateRecipeDto dto, Guid userId)
+    {
+        var recipe = await _context.Recipes
+            .Include(r => r.Ingredients)
+            .Include(r => r.Steps)
+            .FirstOrDefaultAsync(r => r.Id == id && r.UserId == userId);
+
+        if (recipe == null)
+            return null;
+
+        recipe.Title = dto.Title;
+        recipe.Description = dto.Description;
+        recipe.ImageUrl = dto.ImageUrl;
+        recipe.PrepTime = dto.PrepTime;
+        recipe.CookTime = dto.CookTime;
+        recipe.Servings = dto.Servings;
+        recipe.Difficulty = dto.Difficulty;
+        recipe.CategoryId = dto.CategoryId;
+        recipe.SourceType = dto.SourceType;
+        recipe.SourceUrl = dto.SourceUrl;
+        recipe.UpdatedAt = DateTime.UtcNow;
+
+        _context.Ingredients.RemoveRange(recipe.Ingredients);
+        _context.RecipeSteps.RemoveRange(recipe.Steps);
+
+        recipe.Ingredients = dto.Ingredients.Select(i => new Ingredient
+        {
+            Name = i.Name,
+            Amount = i.Amount
+        }).ToList();
+
+        recipe.Steps = dto.Steps.Select(s => new RecipeStep
+        {
+            StepNumber = s.StepNumber,
+            Description = s.Description
+        }).ToList();
+
+        await _context.SaveChangesAsync();
+
+        return await GetByIdAsync(recipe.Id, userId);
+    }
 }

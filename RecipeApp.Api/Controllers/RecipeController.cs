@@ -83,4 +83,22 @@ public class RecipeController : ControllerBase
 
         return NoContent();
     }
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update(Guid id, UpdateRecipeDto dto)
+    {
+        var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (string.IsNullOrEmpty(userIdString))
+            return Unauthorized();
+
+        var userId = Guid.Parse(userIdString);
+
+        var recipe = await _recipeService.UpdateAsync(id, dto, userId);
+
+        if (recipe == null)
+            return NotFound("Tarif bulunamadı.");
+
+        return Ok(recipe);
+    }
 }

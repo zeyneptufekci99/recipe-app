@@ -8,4 +8,5 @@ public interface IRecipeService
     Task<List<RecipeResponseDto>> GetAllAsync(Guid userId);
     Task<RecipeDetailDto?> GetByIdAsync(Guid id, Guid userId);
     Task<bool> DeleteAsync(Guid id, Guid userId);
+    Task<RecipeDetailDto?> UpdateAsync(Guid id, UpdateRecipeDto dto, Guid userId);
 }
