@@ -47,16 +47,6 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 
-    builder.Services.AddCors(options =>
-    {
-        options.AddPolicy("AllowMobile", policy =>
-        {
-            policy.AllowAnyOrigin()
-                  .AllowAnyHeader()
-                  .AllowAnyMethod();
-        });
-    });
-
     // XML Documentation
     var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFilename);
@@ -64,6 +54,7 @@ builder.Services.AddSwaggerGen(c =>
     c.IncludeXmlComments(xmlPath);
 });
 
+// CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowMobile", policy =>
