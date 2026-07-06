@@ -1,5 +1,10 @@
 import { baseApi } from "@/services/base-api";
-import type { AuthResponse, LoginRequest, RegisterRequest } from "@/types/auth";
+import type {
+  AuthResponse,
+  AuthUser,
+  LoginRequest,
+  RegisterRequest,
+} from "@/types/auth";
 
 export const authApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -18,7 +23,11 @@ export const authApi = baseApi.injectEndpoints({
         body,
       }),
     }),
+
+    me: builder.query<AuthUser, void>({
+      query: () => "/Auth/me",
+    }),
   }),
 });
 
-export const { useLoginMutation, useRegisterMutation } = authApi;
+export const { useLoginMutation, useRegisterMutation, useMeQuery } = authApi;

@@ -23,7 +23,7 @@ export default function LoginScreen() {
         setCredentials({
           token,
           user: {
-            id,
+            userId: id,
             name,
             email: response.email,
           },
@@ -41,7 +41,7 @@ export default function LoginScreen() {
 
   return (
     <View style={{ flex: 1, justifyContent: "center", padding: 24, gap: 12 }}>
-      <Text style={{ fontSize: 28, fontWeight: "700", textAlign: "center" }}>
+      <Text className="text-primary text-3xl font-bold text-center">
         RecipeApp
       </Text>
 

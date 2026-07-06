@@ -10,11 +10,14 @@ export interface RegisterRequest {
 }
 
 export interface AuthUser {
-  id: string;
+  userId: string;
   name: string;
   email: string;
 }
 
-export interface AuthResponse extends AuthUser {
+export interface AuthResponse {
+  id: string;
+  name: string;
+  email: string;
   token: string;
 }
