@@ -1,27 +1,23 @@
+import { useLoginMutation } from "@/features/auth/auth-api";
 import { setCredentials } from "@/features/auth/auth-slice";
-import { authService } from "@/services/auth-service";
 import { storageService } from "@/services/storage";
 import { useAppDispatch } from "@/store/hooks";
 import { router } from "expo-router";
 import { useState } from "react";
 import { Alert, Button, Text, TextInput, View } from "react-native";
+
 export default function LoginScreen() {
   const dispatch = useAppDispatch();
+  const [login, { isLoading }] = useLoginMutation();
 
   const [email, setEmail] = useState("test@test.com");
   const [password, setPassword] = useState("123456");
-  const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
     try {
-      setLoading(true);
+      const response = await login({ email, password }).unwrap();
 
-      const response = await authService.login({
-        email,
-        password,
-      });
-      console.log(response.data);
-      const { token, id, name } = response.data;
+      const { token, id, name } = response;
 
       dispatch(
         setCredentials({
@@ -29,20 +25,17 @@ export default function LoginScreen() {
           user: {
             id,
             name,
-            email: response.data.email,
+            email: response.email,
           },
         }),
       );
 
       await storageService.saveToken(token);
+
       router.replace("/home");
-      Alert.alert("Başarılı", "Giriş yapıldı.");
-    } catch (error: any) {
-      console.log(error.response?.data);
-      console.log(error.response?.status);
-      console.log(error.message);
-    } finally {
-      setLoading(false);
+    } catch (error) {
+      console.log("Login error:", error);
+      Alert.alert("Hata", "Giriş yapılamadı.");
     }
   };
 
@@ -80,9 +73,9 @@ export default function LoginScreen() {
       />
 
       <Button
-        title={loading ? "Giriş yapılıyor..." : "Giriş Yap"}
+        title={isLoading ? "Giriş yapılıyor..." : "Giriş Yap"}
         onPress={handleLogin}
-        disabled={loading}
+        disabled={isLoading}
       />
     </View>
   );
