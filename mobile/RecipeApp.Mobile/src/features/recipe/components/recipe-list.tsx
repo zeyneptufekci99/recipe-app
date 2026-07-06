@@ -16,8 +16,8 @@ export function RecipeList({ recipes }: RecipeListProps) {
       renderItem={({ item }) => (
         <RecipeCard
           recipe={item}
-          onPress={() => console.log(item.title)}
-          onFavoritePress={() => console.log("Favorite", item.id)}
+          onPress={() => console.log("Recipe detail:", item.id)}
+          onFavoritePress={() => console.log("Favorite:", item.id)}
         />
       )}
     />
