@@ -23,7 +23,8 @@ export function RecipeCard({
           </View>
 
           <IconButton
-            icon={recipe.isFavorite ? "❤️" : "🤍"}
+            icon={recipe.isFavorite ? "heart" : "heart-outline"}
+            color={recipe.isFavorite ? "#E03131" : "#7A7A7A"}
             onPress={onFavoritePress}
           />
         </View>
