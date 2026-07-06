@@ -4,7 +4,7 @@ import { storageService } from "@/services/storage";
 import { useAppDispatch } from "@/store/hooks";
 import { router } from "expo-router";
 import { useState } from "react";
-import { Alert, Button, Text, TextInput, View } from "react-native";
+import { Alert, Text, TextInput, TouchableOpacity, View } from "react-native";
 
 export default function LoginScreen() {
   const dispatch = useAppDispatch();
@@ -16,7 +16,6 @@ export default function LoginScreen() {
   const handleLogin = async () => {
     try {
       const response = await login({ email, password }).unwrap();
-
       const { token, id, name } = response;
 
       dispatch(
@@ -31,7 +30,6 @@ export default function LoginScreen() {
       );
 
       await storageService.saveToken(token);
-
       router.replace("/home");
     } catch (error) {
       console.log("Login error:", error);
@@ -40,43 +38,46 @@ export default function LoginScreen() {
   };
 
   return (
-    <View style={{ flex: 1, justifyContent: "center", padding: 24, gap: 12 }}>
-      <Text className="text-primary text-3xl font-bold text-center">
-        RecipeApp
-      </Text>
+    <View className="flex-1 justify-center bg-background px-6">
+      <View className="mb-10">
+        <Text className="text-center text-4xl font-bold text-primary">
+          RecipeApp
+        </Text>
+        <Text className="mt-2 text-center text-base text-muted">
+          Tariflerini tek yerde yönet
+        </Text>
+      </View>
 
-      <TextInput
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        autoCapitalize="none"
-        keyboardType="email-address"
-        style={{
-          borderWidth: 1,
-          borderColor: "#ddd",
-          borderRadius: 8,
-          padding: 12,
-        }}
-      />
+      <View className="gap-4">
+        <TextInput
+          placeholder="Email"
+          value={email}
+          onChangeText={setEmail}
+          autoCapitalize="none"
+          keyboardType="email-address"
+          className="rounded-xl border border-border bg-surface px-4 py-4 text-text"
+          placeholderTextColor="#7A7A7A"
+        />
 
-      <TextInput
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-        style={{
-          borderWidth: 1,
-          borderColor: "#ddd",
-          borderRadius: 8,
-          padding: 12,
-        }}
-      />
+        <TextInput
+          placeholder="Şifre"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+          className="rounded-xl border border-border bg-surface px-4 py-4 text-text"
+          placeholderTextColor="#7A7A7A"
+        />
 
-      <Button
-        title={isLoading ? "Giriş yapılıyor..." : "Giriş Yap"}
-        onPress={handleLogin}
-        disabled={isLoading}
-      />
+        <TouchableOpacity
+          onPress={handleLogin}
+          disabled={isLoading}
+          className="mt-2 rounded-xl bg-primary py-4"
+        >
+          <Text className="text-center text-base font-bold text-white">
+            {isLoading ? "Giriş yapılıyor..." : "Giriş Yap"}
+          </Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
