@@ -8,6 +8,8 @@ export interface RecipeListItem {
   servings: number;
   difficulty: number;
   isFavorite: boolean;
+  rating?: number;
+  reviewCount?: number;
 }
 
 export interface PagedResult<T> {

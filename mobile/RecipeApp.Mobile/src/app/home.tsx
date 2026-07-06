@@ -1,4 +1,5 @@
 import { useGetCategoriesQuery } from "@/features/category/category-api";
+import { RecipeList } from "@/features/recipe/components/recipe-list";
 import { useGetRecipesQuery } from "@/features/recipe/recipe-api";
 import { Text, View } from "react-native";
 
@@ -21,16 +22,12 @@ export default function HomeScreen() {
       <Text style={{ fontSize: 28, fontWeight: "700" }}>RecipeApp</Text>
 
       <Text style={{ fontWeight: "700" }}>Categories</Text>
-      {categories?.map((category) => (
+      {/* {categories?.map((category) => (
         <Text key={category.id}>{category.name}</Text>
-      ))}
+      ))} */}
 
       <Text style={{ fontWeight: "700", marginTop: 16 }}>Recipes</Text>
-      {recipes?.items.map((recipe) => (
-        <Text key={recipe.id}>
-          {recipe.title} - {recipe.category}
-        </Text>
-      ))}
+      <RecipeList recipes={recipes?.items ?? []} />
     </View>
   );
 }

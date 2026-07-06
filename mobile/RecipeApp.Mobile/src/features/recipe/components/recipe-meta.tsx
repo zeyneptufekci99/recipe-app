@@ -22,7 +22,7 @@ export function RecipeMeta({
 
       <View className="flex-row items-center gap-1">
         <Ionicons name="people-outline" size={16} color="#7A7A7A" />
-        <Text className="text-xs text-muted">{servings}</Text>
+        <Text className="text-xs text-muted">{servings} servings</Text>
       </View>
 
       <DifficultyBadge difficulty={difficulty} />

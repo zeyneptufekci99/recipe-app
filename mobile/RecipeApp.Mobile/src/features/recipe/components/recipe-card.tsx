@@ -1,6 +1,10 @@
-import { Card, IconButton } from "@/components";
+import { Card } from "@/components/ui/card";
 import type { RecipeListItem } from "@/types/recipe";
+import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import { Text, TouchableOpacity, View } from "react-native";
+import { FavoriteButton } from "./favorite-button";
+import { RecipeMeta } from "./recipe-meta";
 
 interface RecipeCardProps {
   recipe: RecipeListItem;
@@ -13,28 +17,48 @@ export function RecipeCard({
   onPress,
   onFavoritePress,
 }: RecipeCardProps) {
-  return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.8}>
-      <Card>
-        <View className="flex-row items-start justify-between gap-3">
-          <View className="flex-1">
-            <Text className="text-lg font-bold text-text">{recipe.title}</Text>
-            <Text className="mt-1 text-sm text-muted">{recipe.category}</Text>
-          </View>
+  const totalTime = recipe.prepTime + recipe.cookTime;
+  const rating = recipe.rating ?? 4.8;
+  const reviewCount = recipe.reviewCount ?? 126;
 
-          <IconButton
-            icon={recipe.isFavorite ? "heart" : "heart-outline"}
-            color={recipe.isFavorite ? "#E03131" : "#7A7A7A"}
-            onPress={onFavoritePress}
+  return (
+    <TouchableOpacity onPress={onPress} activeOpacity={0.9}>
+      <Card className="overflow-hidden p-0">
+        <View className="relative">
+          <Image
+            source={
+              recipe.imageUrl
+                ? { uri: recipe.imageUrl }
+                : require("../../../../assets/images/recipe-placeholder.jpg")
+            }
+            contentFit="cover"
+            transition={300}
+            className="h-48 w-full"
           />
+
+          <View className="absolute right-3 top-3">
+            <FavoriteButton
+              isFavorite={recipe.isFavorite}
+              onPress={onFavoritePress}
+            />
+          </View>
         </View>
 
-        <View className="mt-4 flex-row gap-4">
-          <Text className="text-sm text-muted">
-            ⏱ {recipe.prepTime + recipe.cookTime} dk
-          </Text>
-          <Text className="text-sm text-muted">👥 {recipe.servings}</Text>
-          <Text className="text-sm text-muted">⭐ {recipe.difficulty}</Text>
+        <View className="p-4">
+          <Text className="text-xl font-bold text-text">{recipe.title}</Text>
+          <Text className="mt-1 text-sm text-muted">{recipe.category}</Text>
+
+          <View className="mt-3 flex-row items-center gap-1">
+            <Ionicons name="star" size={16} color="#FAA307" />
+            <Text className="text-sm font-semibold text-text">{rating}</Text>
+            <Text className="text-sm text-muted">({reviewCount} reviews)</Text>
+          </View>
+
+          <RecipeMeta
+            totalTime={totalTime}
+            servings={recipe.servings}
+            difficulty={recipe.difficulty}
+          />
         </View>
       </Card>
     </TouchableOpacity>
