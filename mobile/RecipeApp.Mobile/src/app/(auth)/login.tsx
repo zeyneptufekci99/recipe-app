@@ -2,9 +2,9 @@ import { setCredentials } from "@/features/auth/auth-slice";
 import { authService } from "@/services/auth-service";
 import { storageService } from "@/services/storage";
 import { useAppDispatch } from "@/store/hooks";
+import { router } from "expo-router";
 import { useState } from "react";
 import { Alert, Button, Text, TextInput, View } from "react-native";
-
 export default function LoginScreen() {
   const dispatch = useAppDispatch();
 
@@ -35,7 +35,7 @@ export default function LoginScreen() {
       );
 
       await storageService.saveToken(token);
-
+      router.replace("/home");
       Alert.alert("Başarılı", "Giriş yapıldı.");
     } catch (error: any) {
       console.log(error.response?.data);
