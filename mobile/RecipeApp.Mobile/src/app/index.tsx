@@ -6,8 +6,8 @@ export default function Home() {
   useEffect(() => {
     categoryService
       .getAll()
-      .then((res) => console.log(res.data))
-      .catch(console.error);
+      .then((res) => console.log("Categories:", res.data))
+      .catch((err) => console.log("API Error:", err.message));
   }, []);
 
   return (
