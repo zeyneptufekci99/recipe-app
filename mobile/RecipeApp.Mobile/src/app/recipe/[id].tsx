@@ -12,10 +12,11 @@ export default function RecipeDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
 
   const { data, isLoading, error } = useGetRecipeByIdQuery(id);
+  const [toggleFavorite] = useToggleFavoriteMutation();
 
   if (isLoading) return <Text>Loading...</Text>;
   if (error || !data) return <Text>Recipe not found</Text>;
-  const [toggleFavorite] = useToggleFavoriteMutation();
+
   return (
     <ScrollView
       className="flex-1 bg-background"

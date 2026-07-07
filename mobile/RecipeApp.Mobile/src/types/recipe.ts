@@ -47,3 +47,28 @@ export interface RecipeDetail extends RecipeListItem {
   ingredients: Ingredient[];
   steps: RecipeStep[];
 }
+
+export interface CreateIngredientRequest {
+  name: string;
+  amount?: string;
+}
+
+export interface CreateRecipeStepRequest {
+  stepNumber: number;
+  description: string;
+}
+
+export interface CreateRecipeRequest {
+  title: string;
+  description?: string;
+  imageUrl?: string;
+  prepTime: number;
+  cookTime: number;
+  servings: number;
+  difficulty: number;
+  categoryId: string;
+  sourceType: number;
+  sourceUrl?: string;
+  ingredients: CreateIngredientRequest[];
+  steps: CreateRecipeStepRequest[];
+}
