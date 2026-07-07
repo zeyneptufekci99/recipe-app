@@ -27,3 +27,23 @@ export interface GetRecipesParams {
   page?: number;
   pageSize?: number;
 }
+
+export interface Ingredient {
+  id: string;
+  name: string;
+  amount: string | null;
+}
+
+export interface RecipeStep {
+  id: string;
+  stepNumber: number;
+  description: string;
+}
+
+export interface RecipeDetail extends RecipeListItem {
+  description: string | null;
+  sourceType: number;
+  sourceUrl: string | null;
+  ingredients: Ingredient[];
+  steps: RecipeStep[];
+}

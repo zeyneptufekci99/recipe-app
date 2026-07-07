@@ -2,6 +2,7 @@ import { baseApi } from "@/services/base-api";
 import type {
   GetRecipesParams,
   PagedResult,
+  RecipeDetail,
   RecipeListItem,
 } from "@/types/recipe";
 
@@ -21,7 +22,15 @@ export const recipeApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["Recipe"],
     }),
+    getRecipeById: builder.query<RecipeDetail, string>({
+      query: (id) => `/Recipe/${id}`,
+      providesTags: (_result, _error, id) => [{ type: "Recipe", id }],
+    }),
   }),
 });
 
-export const { useGetRecipesQuery, useToggleFavoriteMutation } = recipeApi;
+export const {
+  useGetRecipesQuery,
+  useGetRecipeByIdQuery,
+  useToggleFavoriteMutation,
+} = recipeApi;

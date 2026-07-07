@@ -1,4 +1,5 @@
 import type { RecipeListItem } from "@/types/recipe";
+import { RelativePathString, router } from "expo-router";
 import { FlatList } from "react-native";
 import { useToggleFavoriteMutation } from "../recipe-api";
 import { RecipeCard } from "./recipe-card";
@@ -18,7 +19,9 @@ export function RecipeList({ recipes }: RecipeListProps) {
       renderItem={({ item }) => (
         <RecipeCard
           recipe={item}
-          onPress={() => console.log("Recipe detail:", item.id)}
+          onPress={() =>
+            router.push(`/recipe/${item.id}` as RelativePathString)
+          }
           onFavoritePress={() => toggleFavorite(item.id)}
         />
       )}
