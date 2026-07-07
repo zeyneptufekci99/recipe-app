@@ -14,7 +14,14 @@ export const recipeApi = baseApi.injectEndpoints({
       }),
       providesTags: ["Recipe"],
     }),
+    toggleFavorite: builder.mutation<RecipeListItem, string>({
+      query: (id) => ({
+        url: `/Recipe/${id}/favorite`,
+        method: "PATCH",
+      }),
+      invalidatesTags: ["Recipe"],
+    }),
   }),
 });
 
-export const { useGetRecipesQuery } = recipeApi;
+export const { useGetRecipesQuery, useToggleFavoriteMutation } = recipeApi;

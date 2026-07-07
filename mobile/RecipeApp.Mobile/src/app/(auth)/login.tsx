@@ -30,6 +30,8 @@ export default function LoginScreen() {
       );
 
       await storageService.saveToken(token);
+      const savedToken = await storageService.getToken();
+      console.log("Saved token after login:", savedToken);
       router.replace("/home");
     } catch (error) {
       console.log("Login error:", error);

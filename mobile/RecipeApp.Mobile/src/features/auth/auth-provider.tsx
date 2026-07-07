@@ -19,13 +19,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
       try {
         const token = await storageService.getToken();
 
-        if (!token) return;
+        console.log("Stored token:", token);
+
+        if (!token) {
+          console.log("No token found");
+          return;
+        }
+
+        console.log("Calling /Auth/me...");
 
         const response = await api.get<AuthUser>("/Auth/me", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
+
+        console.log("Me response:", response.data);
 
         dispatch(
           setCredentials({
@@ -34,6 +43,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           }),
         );
       } catch (error) {
+        console.log("Bootstrap auth error:", error);
         await storageService.removeToken();
       } finally {
         setLoading(false);
@@ -45,7 +55,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+      <View className="flex-1 items-center justify-center bg-background">
         <ActivityIndicator />
       </View>
     );
