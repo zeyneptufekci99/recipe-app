@@ -1,13 +1,19 @@
 import { ImagePicker } from "@/components/ui/image-picker";
 import { useGetCategoriesQuery } from "@/features/category/category-api";
 import { CategorySelector } from "@/features/category/components/category-selector";
-import { uploadService } from "@/services/upload-service";
 import {
+  recipeFormSchema,
+  type RecipeFormValues,
+} from "@/features/recipe/schemas/recipe-form-schema";
+import { uploadService } from "@/services/upload-service";
+import type {
   CreateIngredientRequest,
   CreateRecipeStepRequest,
 } from "@/types/recipe";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { router } from "expo-router";
 import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { Alert, ScrollView, Text, TouchableOpacity } from "react-native";
 import { useCreateRecipeMutation } from "../recipe-api";
 import { DifficultySelector } from "./difficulty-selector";
@@ -17,62 +23,58 @@ import { RecipeTimeInputs } from "./recipe-time-inputs";
 import { StepEditor } from "./step-editor";
 
 export function RecipeForm() {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-
-  const [prepTime, setPrepTime] = useState("");
-  const [cookTime, setCookTime] = useState("");
-  const [servings, setServings] = useState("");
-  const [categoryId, setCategoryId] = useState<string | undefined>();
-  const [ingredients, setIngredients] = useState<CreateIngredientRequest[]>([
-    {
-      name: "",
-      amount: "",
-    },
-  ]);
-  const [steps, setSteps] = useState<CreateRecipeStepRequest[]>([
-    {
-      stepNumber: 1,
+  const {
+    control,
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { errors },
+  } = useForm<RecipeFormValues>({
+    resolver: zodResolver(recipeFormSchema),
+    defaultValues: {
+      title: "",
       description: "",
+      categoryId: "",
+      prepTime: "",
+      cookTime: "",
+      servings: "",
+      difficulty: 1,
     },
+  });
+
+  const categoryId = watch("categoryId");
+  const difficulty = watch("difficulty");
+
+  const [ingredients, setIngredients] = useState<CreateIngredientRequest[]>([
+    { name: "", amount: "" },
   ]);
-  const [difficulty, setDifficulty] = useState(1);
+
+  const [steps, setSteps] = useState<CreateRecipeStepRequest[]>([
+    { stepNumber: 1, description: "" },
+  ]);
+
+  const [imageUri, setImageUri] = useState("");
 
   const { data: categories } = useGetCategoriesQuery();
   const [createRecipe, { isLoading }] = useCreateRecipeMutation();
-  const [imageUri, setImageUri] = useState("");
 
-  const handleSubmit = async () => {
+  const onSubmit = async (values: RecipeFormValues) => {
     try {
-      if (!title.trim()) {
-        Alert.alert("Hata", "Tarif adı zorunludur.");
-        return;
-      }
-
-      if (!categoryId) {
-        Alert.alert("Hata", "Kategori seçmelisin.");
-        return;
-      }
-      console.log("Submit başladı");
-
       let uploadedImageUrl = "";
 
       if (imageUri) {
-        console.log("Image upload başladı:", imageUri);
         uploadedImageUrl = await uploadService.uploadImage(imageUri);
-        console.log("Image upload bitti:", uploadedImageUrl);
       }
 
-      console.log("Recipe create başladı");
       await createRecipe({
-        title,
-        description,
+        title: values.title,
+        description: values.description,
         imageUrl: uploadedImageUrl,
-        prepTime: Number(prepTime) || 0,
-        cookTime: Number(cookTime) || 0,
-        servings: Number(servings) || 1,
-        difficulty,
-        categoryId,
+        prepTime: Number(values.prepTime) || 0,
+        cookTime: Number(values.cookTime) || 0,
+        servings: Number(values.servings) || 1,
+        difficulty: values.difficulty,
+        categoryId: values.categoryId,
         sourceType: 1,
         sourceUrl: "",
         ingredients: ingredients.filter((i) => i.name.trim()),
@@ -86,10 +88,8 @@ export function RecipeForm() {
 
       Alert.alert("Başarılı", "Tarif oluşturuldu.");
       router.back();
-    } catch (error: any) {
+    } catch (error) {
       console.log("Create recipe error:", error);
-      console.log("Error response:", error?.response?.data);
-      console.log("Error status:", error?.response?.status);
       Alert.alert("Hata", "Tarif oluşturulamadı.");
     }
   };
@@ -99,26 +99,23 @@ export function RecipeForm() {
       showsVerticalScrollIndicator={false}
       contentContainerClassName="gap-5 pb-10"
     >
-      <RecipeBasicInfo
-        title={title}
-        description={description}
-        onTitleChange={setTitle}
-        onDescriptionChange={setDescription}
-      />
+      <RecipeBasicInfo control={control} errors={errors} />
 
-      <RecipeTimeInputs
-        prepTime={prepTime}
-        cookTime={cookTime}
-        servings={servings}
-        onPrepTimeChange={setPrepTime}
-        onCookTimeChange={setCookTime}
-        onServingsChange={setServings}
-      />
+      <RecipeTimeInputs control={control} errors={errors} />
 
       <CategorySelector
         categories={categories ?? []}
         selectedCategoryId={categoryId}
-        onSelect={setCategoryId}
+        onSelect={(id) => setValue("categoryId", id ?? "")}
+      />
+
+      {errors.categoryId ? (
+        <Text className="text-sm text-danger">{errors.categoryId.message}</Text>
+      ) : null}
+
+      <DifficultySelector
+        value={difficulty}
+        onChange={(value) => setValue("difficulty", value)}
       />
 
       <IngredientEditor ingredients={ingredients} onChange={setIngredients} />
@@ -127,10 +124,8 @@ export function RecipeForm() {
 
       <ImagePicker imageUri={imageUri} onChange={setImageUri} />
 
-      <DifficultySelector value={difficulty} onChange={setDifficulty} />
-
       <TouchableOpacity
-        onPress={handleSubmit}
+        onPress={handleSubmit(onSubmit)}
         disabled={isLoading}
         className="rounded-xl bg-primary py-4"
       >
