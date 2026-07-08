@@ -1,5 +1,7 @@
+import { ImagePicker } from "@/components/ui/image-picker";
 import { useGetCategoriesQuery } from "@/features/category/category-api";
 import { CategorySelector } from "@/features/category/components/category-selector";
+import { uploadService } from "@/services/upload-service";
 import {
   CreateIngredientRequest,
   CreateRecipeStepRequest,
@@ -38,6 +40,7 @@ export function RecipeForm() {
 
   const { data: categories } = useGetCategoriesQuery();
   const [createRecipe, { isLoading }] = useCreateRecipeMutation();
+  const [imageUri, setImageUri] = useState("");
 
   const handleSubmit = async () => {
     try {
@@ -50,11 +53,21 @@ export function RecipeForm() {
         Alert.alert("Hata", "Kategori seçmelisin.");
         return;
       }
+      console.log("Submit başladı");
 
+      let uploadedImageUrl = "";
+
+      if (imageUri) {
+        console.log("Image upload başladı:", imageUri);
+        uploadedImageUrl = await uploadService.uploadImage(imageUri);
+        console.log("Image upload bitti:", uploadedImageUrl);
+      }
+
+      console.log("Recipe create başladı");
       await createRecipe({
         title,
         description,
-        imageUrl: "",
+        imageUrl: uploadedImageUrl,
         prepTime: Number(prepTime) || 0,
         cookTime: Number(cookTime) || 0,
         servings: Number(servings) || 1,
@@ -73,8 +86,10 @@ export function RecipeForm() {
 
       Alert.alert("Başarılı", "Tarif oluşturuldu.");
       router.back();
-    } catch (error) {
+    } catch (error: any) {
       console.log("Create recipe error:", error);
+      console.log("Error response:", error?.response?.data);
+      console.log("Error status:", error?.response?.status);
       Alert.alert("Hata", "Tarif oluşturulamadı.");
     }
   };
@@ -109,6 +124,8 @@ export function RecipeForm() {
       <IngredientEditor ingredients={ingredients} onChange={setIngredients} />
 
       <StepEditor steps={steps} onChange={setSteps} />
+
+      <ImagePicker imageUri={imageUri} onChange={setImageUri} />
 
       <DifficultySelector value={difficulty} onChange={setDifficulty} />
 

@@ -9,7 +9,7 @@ namespace RecipeApp.Api.Controllers;
 public class UploadController : ControllerBase
 {
     [HttpPost("image")]
-    public async Task<IActionResult> UploadImage(IFormFile file)
+    public async Task<IActionResult> UploadImage([FromForm] IFormFile file)
     {
         if (file == null || file.Length == 0)
             return BadRequest("Dosya seçilmedi.");

@@ -1,4 +1,5 @@
 import type { RecipeDetail } from "@/types/recipe";
+import { getImageUrl } from "@/utils/get-image-url";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router } from "expo-router";
@@ -16,14 +17,15 @@ export function RecipeDetailHeader({
 }: RecipeDetailHeaderProps) {
   const rating = recipe.rating ?? 4.8;
   const reviewCount = recipe.reviewCount ?? 126;
+  const imageSource = getImageUrl(recipe.imageUrl);
 
   return (
     <View>
       <View className="relative">
         <Image
           source={
-            recipe.imageUrl
-              ? { uri: recipe.imageUrl }
+            imageSource
+              ? { uri: imageSource }
               : require("../../../../assets/images/recipe-placeholder.jpg")
           }
           contentFit="cover"

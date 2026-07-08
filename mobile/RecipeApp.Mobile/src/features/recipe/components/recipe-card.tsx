@@ -1,5 +1,6 @@
 import { Card } from "@/components/ui/card";
 import type { RecipeListItem } from "@/types/recipe";
+import { getImageUrl } from "@/utils/get-image-url";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { Text, TouchableOpacity, View } from "react-native";
@@ -20,15 +21,15 @@ export function RecipeCard({
   const totalTime = recipe.prepTime + recipe.cookTime;
   const rating = recipe.rating ?? 4.8;
   const reviewCount = recipe.reviewCount ?? 126;
-
+  const imageSource = getImageUrl(recipe.imageUrl);
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.9}>
       <Card className="overflow-hidden p-0">
         <View className="relative">
           <Image
             source={
-              recipe.imageUrl
-                ? { uri: recipe.imageUrl }
+              imageSource
+                ? { uri: imageSource }
                 : require("../../../../assets/images/recipe-placeholder.jpg")
             }
             contentFit="cover"
