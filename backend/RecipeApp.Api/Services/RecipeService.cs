@@ -43,7 +43,8 @@ public class RecipeService : IRecipeService
         Guid? categoryId,
         int? difficulty,
         int page,
-        int pageSize)
+        int pageSize,
+        bool? isFavorite)
     {
         if (page <= 0) page = 1;
         if (pageSize <= 0) pageSize = 10;
@@ -68,6 +69,11 @@ public class RecipeService : IRecipeService
 
         if (difficulty.HasValue)
             query = query.Where(r => (int)r.Difficulty == difficulty.Value);
+
+        if (isFavorite.HasValue)
+        {
+            query = query.Where(r => r.IsFavorite == isFavorite.Value);
+        }
 
         var totalCount = await query.CountAsync();
 

@@ -56,6 +56,10 @@ export const recipeApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["Recipe"],
     }),
+    getFavoriteRecipes: builder.query<PagedResult<RecipeListItem>, void>({
+      query: () => "/Recipe/favorites",
+      providesTags: ["Recipe"],
+    }),
   }),
 });
 
@@ -66,4 +70,5 @@ export const {
   useCreateRecipeMutation,
   useUpdateRecipeMutation,
   useDeleteRecipeMutation,
+  useGetFavoriteRecipesQuery,
 } = recipeApi;
