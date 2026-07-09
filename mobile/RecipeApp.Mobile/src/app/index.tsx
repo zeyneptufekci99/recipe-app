@@ -5,7 +5,7 @@ export default function Index() {
   const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
 
   if (isAuthenticated) {
-    return <Redirect href="/home" />;
+    return <Redirect href="/(tabs)/home" />;
   }
 
   return <Redirect href="/login" />;

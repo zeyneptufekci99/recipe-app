@@ -45,7 +45,7 @@ export default function RegisterScreen() {
       );
 
       await storageService.saveToken(token);
-      router.replace("/home");
+      router.replace("/(tabs)/home");
     } catch (error) {
       console.log("Register error:", error);
       Alert.alert("Hata", "Kayıt oluşturulamadı.");

@@ -44,7 +44,7 @@ export default function LoginScreen() {
       );
 
       await storageService.saveToken(token);
-      router.replace("/home");
+      router.replace("/(tabs)/home");
     } catch (error) {
       console.log("Login error:", error);
       Alert.alert("Hata", "Giriş yapılamadı.");

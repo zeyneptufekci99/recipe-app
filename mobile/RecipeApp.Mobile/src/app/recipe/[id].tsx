@@ -28,7 +28,7 @@ export default function RecipeDetailScreen() {
 
       console.log("Delete success");
 
-      router.replace("/home");
+      router.replace("/(tabs)/home");
     } catch (error) {
       console.log("Delete recipe error:", error);
     }
