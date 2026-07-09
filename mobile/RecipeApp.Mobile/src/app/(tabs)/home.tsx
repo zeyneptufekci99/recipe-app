@@ -1,3 +1,4 @@
+import { AppScreen } from "@/components";
 import { useGetCategoriesQuery } from "@/features/category/category-api";
 import { CategoryList } from "@/features/category/components/category-list";
 import { RecipeCardSkeleton } from "@/features/recipe/components/recipe-card-skeleton";
@@ -24,7 +25,7 @@ export default function HomeScreen() {
 
   if (isLoading) {
     return (
-      <View className="flex-1 bg-background px-4 pt-10">
+      <AppScreen>
         <View className="mb-5 h-9 w-40 rounded-full bg-border" />
         <View className="mb-5 h-12 rounded-2xl bg-border" />
 
@@ -33,13 +34,13 @@ export default function HomeScreen() {
           <RecipeCardSkeleton />
           <RecipeCardSkeleton />
         </View>
-      </View>
+      </AppScreen>
     );
   }
   if (error) return <Text>Recipe error</Text>;
 
   return (
-    <View className="flex-1 bg-background px-4 pt-10">
+    <AppScreen>
       <Text className="mb-5 text-4xl font-bold text-text">RecipeApp</Text>
       <TouchableOpacity
         onPress={() => router.push("/recipe/create")}
@@ -60,6 +61,6 @@ export default function HomeScreen() {
         refreshing={isFetching && !isLoading}
         onRefresh={refetch}
       />
-    </View>
+    </AppScreen>
   );
 }

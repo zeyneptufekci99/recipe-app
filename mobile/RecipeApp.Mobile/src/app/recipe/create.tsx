@@ -1,10 +1,11 @@
+import { AppScreen } from "@/components";
 import { RecipeForm } from "@/features/recipe/components/recipe-form";
 import { router } from "expo-router";
 import { Text, TouchableOpacity, View } from "react-native";
 
 export default function CreateRecipeScreen() {
   return (
-    <View className="flex-1 bg-background px-4 pt-10">
+    <AppScreen>
       <View className="mb-6 flex-row items-center justify-between">
         <Text className="text-3xl font-bold text-text">Yeni Tarif</Text>
 
@@ -14,6 +15,6 @@ export default function CreateRecipeScreen() {
       </View>
 
       <RecipeForm />
-    </View>
+    </AppScreen>
   );
 }

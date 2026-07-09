@@ -1,4 +1,4 @@
-import { AppButton } from "@/components";
+import { AppButton, AppScreen } from "@/components";
 import { logout } from "@/features/auth/auth-slice";
 import { storageService } from "@/services/storage";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
@@ -16,7 +16,7 @@ export default function ProfileScreen() {
   };
 
   return (
-    <View className="flex-1 bg-background px-4 pt-10">
+    <AppScreen>
       <Text className="mb-6 text-3xl font-bold text-text">Profile</Text>
 
       <View className="rounded-2xl bg-surface p-5">
@@ -40,6 +40,6 @@ export default function ProfileScreen() {
 
         <AppButton title="Logout" onPress={handleLogout} variant="danger" />
       </View>
-    </View>
+    </AppScreen>
   );
 }

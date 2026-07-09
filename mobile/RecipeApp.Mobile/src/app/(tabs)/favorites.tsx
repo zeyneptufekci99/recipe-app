@@ -1,3 +1,4 @@
+import { AppScreen } from "@/components";
 import { EmptyState } from "@/components/ui/empty-state";
 import { RecipeCardSkeleton } from "@/features/recipe/components/recipe-card-skeleton";
 import { RecipeList } from "@/features/recipe/components/recipe-list";
@@ -9,7 +10,7 @@ export default function FavoritesScreen() {
 
   if (isLoading) {
     return (
-      <View className="flex-1 bg-background px-4 pt-10">
+      <AppScreen>
         <View className="mb-6 h-9 w-44 rounded-full bg-border" />
 
         <View className="gap-4">
@@ -17,7 +18,7 @@ export default function FavoritesScreen() {
           <RecipeCardSkeleton />
           <RecipeCardSkeleton />
         </View>
-      </View>
+      </AppScreen>
     );
   }
 
@@ -30,7 +31,7 @@ export default function FavoritesScreen() {
   }
 
   return (
-    <View className="flex-1 bg-background px-4 pt-10">
+    <AppScreen>
       <Text className="mb-5 text-3xl font-bold text-text">Favorites</Text>
 
       {data?.items.length ? (
@@ -42,6 +43,6 @@ export default function FavoritesScreen() {
           icon="heart-outline"
         />
       )}
-    </View>
+    </AppScreen>
   );
 }
