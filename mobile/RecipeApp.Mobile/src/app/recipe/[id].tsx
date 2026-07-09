@@ -2,13 +2,16 @@ import { IngredientList } from "@/features/recipe/components/ingredient-list";
 import { InstructionList } from "@/features/recipe/components/instruciton-list";
 import { RecipeDetailHeader } from "@/features/recipe/components/recipe-detail-header";
 import {
+  useDeleteRecipeMutation,
   useGetRecipeByIdQuery,
   useToggleFavoriteMutation,
 } from "@/features/recipe/recipe-api";
-import { useLocalSearchParams } from "expo-router";
-import { ScrollView, Text } from "react-native";
+import { router, useLocalSearchParams } from "expo-router";
+import { ScrollView, Text, TouchableOpacity } from "react-native";
 
 export default function RecipeDetailScreen() {
+  const [deleteRecipe, { isLoading: isDeleting }] = useDeleteRecipeMutation();
+
   const { id } = useLocalSearchParams<{ id: string }>();
 
   const { data, isLoading, error } = useGetRecipeByIdQuery(id);
@@ -16,6 +19,20 @@ export default function RecipeDetailScreen() {
 
   if (isLoading) return <Text>Loading...</Text>;
   if (error || !data) return <Text>Recipe not found</Text>;
+
+  const handleDelete = async () => {
+    try {
+      console.log("Delete started:", data.id);
+
+      await deleteRecipe(data.id).unwrap();
+
+      console.log("Delete success");
+
+      router.replace("/home");
+    } catch (error) {
+      console.log("Delete recipe error:", error);
+    }
+  };
 
   return (
     <ScrollView
@@ -29,9 +46,25 @@ export default function RecipeDetailScreen() {
         recipe={data}
         onFavoritePress={() => toggleFavorite(data.id)}
       />
+      <TouchableOpacity
+        onPress={() => router.push(`/recipe/edit/${data.id}`)}
+        className="mt-4 rounded-xl bg-primary py-3"
+      >
+        <Text className="text-center font-bold text-white">Düzenle</Text>
+      </TouchableOpacity>
       <IngredientList ingredients={data.ingredients} />
 
       <InstructionList steps={data.steps} />
+
+      <TouchableOpacity
+        onPress={handleDelete}
+        disabled={isDeleting}
+        className="mt-6 rounded-xl bg-red-500 py-4"
+      >
+        <Text className="text-center font-bold text-white">
+          {isDeleting ? "Siliniyor..." : "Tarifi Sil"}
+        </Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 }

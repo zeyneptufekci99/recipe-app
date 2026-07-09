@@ -9,67 +9,136 @@ import { uploadService } from "@/services/upload-service";
 import type {
   CreateIngredientRequest,
   CreateRecipeStepRequest,
+  RecipeDetail,
 } from "@/types/recipe";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { router } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Alert, ScrollView, Text, TouchableOpacity } from "react-native";
-import { useCreateRecipeMutation } from "../recipe-api";
+import {
+  useCreateRecipeMutation,
+  useUpdateRecipeMutation,
+} from "../recipe-api";
 import { DifficultySelector } from "./difficulty-selector";
 import { IngredientEditor } from "./ingredient-editor";
 import { RecipeBasicInfo } from "./recipe-basic-info";
 import { RecipeTimeInputs } from "./recipe-time-inputs";
 import { StepEditor } from "./step-editor";
 
-export function RecipeForm() {
+interface RecipeFormProps {
+  recipe?: RecipeDetail;
+  mode?: "create" | "edit";
+}
+
+export function RecipeForm({ recipe, mode = "create" }: RecipeFormProps) {
   const {
     control,
     handleSubmit,
     watch,
+    reset,
     setValue,
     formState: { errors },
   } = useForm<RecipeFormValues>({
     resolver: zodResolver(recipeFormSchema),
     defaultValues: {
-      title: "",
-      description: "",
-      categoryId: "",
-      prepTime: "",
-      cookTime: "",
-      servings: "",
-      difficulty: 1,
+      title: recipe?.title ?? "",
+      description: recipe?.description ?? "",
+      prepTime: recipe?.prepTime?.toString() ?? "",
+      cookTime: recipe?.cookTime?.toString() ?? "",
+      servings: recipe?.servings?.toString() ?? "",
+      difficulty: recipe?.difficulty ?? 1,
+      categoryId: recipe?.categoryId ?? "",
     },
   });
+
+  useEffect(() => {
+    if (!recipe) return;
+
+    reset({
+      title: recipe.title,
+      description: recipe.description ?? "",
+      categoryId: recipe.categoryId,
+      prepTime: recipe.prepTime.toString(),
+      cookTime: recipe.cookTime.toString(),
+      servings: recipe.servings.toString(),
+      difficulty: recipe.difficulty,
+    });
+
+    setIngredients(
+      recipe.ingredients.length
+        ? recipe.ingredients.map((i) => ({
+            name: i.name,
+            amount: i.amount ?? "",
+          }))
+        : [{ name: "", amount: "" }],
+    );
+
+    setSteps(
+      recipe.steps.length
+        ? recipe.steps.map((s) => ({
+            stepNumber: s.stepNumber,
+            description: s.description,
+          }))
+        : [{ stepNumber: 1, description: "" }],
+    );
+
+    setImageUri(recipe.imageUrl ?? "");
+  }, [recipe, reset]);
 
   const categoryId = watch("categoryId");
   const difficulty = watch("difficulty");
 
-  const [ingredients, setIngredients] = useState<CreateIngredientRequest[]>([
-    { name: "", amount: "" },
-  ]);
+  const [ingredients, setIngredients] = useState<CreateIngredientRequest[]>(
+    recipe?.ingredients?.length
+      ? recipe.ingredients.map((i) => ({
+          name: i.name,
+          amount: i.amount ?? "",
+        }))
+      : [{ name: "", amount: "" }],
+  );
 
-  const [steps, setSteps] = useState<CreateRecipeStepRequest[]>([
-    { stepNumber: 1, description: "" },
-  ]);
+  const [steps, setSteps] = useState<CreateRecipeStepRequest[]>(
+    recipe?.steps?.length
+      ? recipe.steps.map((s) => ({
+          stepNumber: s.stepNumber,
+          description: s.description,
+        }))
+      : [{ stepNumber: 1, description: "" }],
+  );
 
   const [imageUri, setImageUri] = useState("");
 
   const { data: categories } = useGetCategoriesQuery();
-  const [createRecipe, { isLoading }] = useCreateRecipeMutation();
+  const [createRecipe, { isLoading: isCreating }] = useCreateRecipeMutation();
+  const [updateRecipe, { isLoading: isUpdating }] = useUpdateRecipeMutation();
 
+  const isLoading = isCreating || isUpdating;
   const onSubmit = async (values: RecipeFormValues) => {
     try {
+      const validIngredients = ingredients.filter((i) => i.name.trim());
+      const validSteps = steps.filter((s) => s.description.trim());
+
+      if (validIngredients.length === 0) {
+        Alert.alert("Hata", "En az bir malzeme eklemelisin.");
+        return;
+      }
+
+      if (validSteps.length === 0) {
+        Alert.alert("Hata", "En az bir adım eklemelisin.");
+        return;
+      }
+
       let uploadedImageUrl = "";
 
-      if (imageUri) {
+      if (imageUri && !imageUri.startsWith("/uploads/")) {
         uploadedImageUrl = await uploadService.uploadImage(imageUri);
       }
 
-      await createRecipe({
+      const body = {
         title: values.title,
         description: values.description,
-        imageUrl: uploadedImageUrl,
+        imageUrl: uploadedImageUrl || recipe?.imageUrl || "",
         prepTime: Number(values.prepTime) || 0,
         cookTime: Number(values.cookTime) || 0,
         servings: Number(values.servings) || 1,
@@ -77,16 +146,26 @@ export function RecipeForm() {
         categoryId: values.categoryId,
         sourceType: 1,
         sourceUrl: "",
-        ingredients: ingredients.filter((i) => i.name.trim()),
-        steps: steps
-          .filter((s) => s.description.trim())
-          .map((step, index) => ({
-            ...step,
-            stepNumber: index + 1,
-          })),
-      }).unwrap();
+        ingredients: validIngredients,
+        steps: validSteps.map((step, index) => ({
+          ...step,
+          stepNumber: index + 1,
+        })),
+      };
 
-      Alert.alert("Başarılı", "Tarif oluşturuldu.");
+      if (mode === "edit" && recipe) {
+        await updateRecipe({
+          id: recipe.id,
+          body,
+        }).unwrap();
+
+        Alert.alert("Başarılı", "Tarif güncellendi.");
+      } else {
+        await createRecipe(body).unwrap();
+
+        Alert.alert("Başarılı", "Tarif oluşturuldu.");
+      }
+
       router.back();
     } catch (error) {
       console.log("Create recipe error:", error);

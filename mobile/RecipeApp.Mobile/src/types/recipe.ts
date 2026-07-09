@@ -46,6 +46,7 @@ export interface RecipeDetail extends RecipeListItem {
   sourceUrl: string | null;
   ingredients: Ingredient[];
   steps: RecipeStep[];
+  categoryId: string;
 }
 
 export interface CreateIngredientRequest {

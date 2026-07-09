@@ -9,6 +9,7 @@ public class RecipeDetailDto
     public string? Description { get; set; }
     public string? ImageUrl { get; set; }
     public string Category { get; set; } = string.Empty;
+    public Guid CategoryId { get; set; }
     public int PrepTime { get; set; }
     public int CookTime { get; set; }
     public int Servings { get; set; }

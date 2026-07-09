@@ -25,11 +25,6 @@ export const uploadService = {
     const response = await api.post<{ imageUrl: string }>(
       "/Upload/image",
       formData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      },
     );
 
     return response.data.imageUrl;
