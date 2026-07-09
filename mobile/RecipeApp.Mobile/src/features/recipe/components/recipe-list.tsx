@@ -1,22 +1,28 @@
-import { EmptyState } from "@/components";
+import { EmptyState } from "@/components/ui/empty-state";
 import type { RecipeListItem } from "@/types/recipe";
-import { RelativePathString, router } from "expo-router";
-import { FlatList } from "react-native";
-import { useToggleFavoriteMutation } from "../recipe-api";
+import { FlatList, RefreshControl } from "react-native";
 import { RecipeCard } from "./recipe-card";
 
 interface RecipeListProps {
   recipes: RecipeListItem[];
+  refreshing?: boolean;
+  onRefresh?: () => void;
 }
 
-export function RecipeList({ recipes }: RecipeListProps) {
-  const [toggleFavorite] = useToggleFavoriteMutation();
+export function RecipeList({
+  recipes,
+  refreshing = false,
+  onRefresh,
+}: RecipeListProps) {
   return (
     <FlatList
       data={recipes}
       keyExtractor={(item) => item.id}
       showsVerticalScrollIndicator={false}
       contentContainerClassName="gap-4 pb-8"
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }
       ListEmptyComponent={
         <EmptyState
           title="Tarif bulunamadı"
@@ -26,10 +32,8 @@ export function RecipeList({ recipes }: RecipeListProps) {
       renderItem={({ item }) => (
         <RecipeCard
           recipe={item}
-          onPress={() =>
-            router.push(`/recipe/${item.id}` as RelativePathString)
-          }
-          onFavoritePress={() => toggleFavorite(item.id)}
+          onPress={() => console.log("Recipe detail:", item.id)}
+          onFavoritePress={() => console.log("Favorite:", item.id)}
         />
       )}
     />

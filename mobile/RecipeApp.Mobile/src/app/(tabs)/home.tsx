@@ -14,11 +14,11 @@ export default function HomeScreen() {
   >();
   const debouncedSearch = useDebounce(search, 500);
   const { data: categories } = useGetCategoriesQuery();
-  const { data, isLoading, error } = useGetRecipesQuery({
+  const { data, isLoading, isFetching, error, refetch } = useGetRecipesQuery({
     search: debouncedSearch,
+    categoryId: selectedCategoryId,
     page: 1,
     pageSize: 10,
-    categoryId: selectedCategoryId,
   });
 
   if (isLoading) return <Text>Loading recipes...</Text>;
@@ -41,7 +41,11 @@ export default function HomeScreen() {
         onSelect={setSelectedCategoryId}
       />
 
-      <RecipeList recipes={data?.items ?? []} />
+      <RecipeList
+        recipes={data?.items ?? []}
+        refreshing={isFetching && !isLoading}
+        onRefresh={refetch}
+      />
     </View>
   );
 }
