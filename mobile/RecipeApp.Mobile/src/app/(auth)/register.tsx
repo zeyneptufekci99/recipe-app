@@ -1,3 +1,4 @@
+import { AppInput } from "@/components";
 import { useRegisterMutation } from "@/features/auth/auth-api";
 import { setCredentials } from "@/features/auth/auth-slice";
 import {
@@ -9,7 +10,7 @@ import { useAppDispatch } from "@/store/hooks";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { router } from "expo-router";
 import { Controller, useForm } from "react-hook-form";
-import { Alert, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Alert, Text, TouchableOpacity, View } from "react-native";
 
 export default function RegisterScreen() {
   const dispatch = useAppDispatch();
@@ -65,7 +66,7 @@ export default function RegisterScreen() {
               control={control}
               name={field}
               render={({ field: { value, onChange } }) => (
-                <TextInput
+                <AppInput
                   placeholder={
                     field === "name"
                       ? "İsim"
@@ -78,8 +79,7 @@ export default function RegisterScreen() {
                   autoCapitalize="none"
                   keyboardType={field === "email" ? "email-address" : "default"}
                   secureTextEntry={field === "password"}
-                  className="rounded-xl border border-border bg-surface px-4 py-4 text-text"
-                  placeholderTextColor="#7A7A7A"
+                  error={errors[field]?.message}
                 />
               )}
             />

@@ -1,3 +1,4 @@
+import { AppButton } from "@/components";
 import { ImagePicker } from "@/components/ui/image-picker";
 import { useGetCategoriesQuery } from "@/features/category/category-api";
 import { CategorySelector } from "@/features/category/components/category-selector";
@@ -15,7 +16,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { Alert, ScrollView, Text, TouchableOpacity } from "react-native";
+import { Alert, ScrollView, Text } from "react-native";
 import {
   useCreateRecipeMutation,
   useUpdateRecipeMutation,
@@ -203,15 +204,11 @@ export function RecipeForm({ recipe, mode = "create" }: RecipeFormProps) {
 
       <ImagePicker imageUri={imageUri} onChange={setImageUri} />
 
-      <TouchableOpacity
+      <AppButton
+        title={isLoading ? "Kaydediliyor..." : "Tarifi Kaydet"}
         onPress={handleSubmit(onSubmit)}
         disabled={isLoading}
-        className="rounded-xl bg-primary py-4"
-      >
-        <Text className="text-center font-bold text-white">
-          {isLoading ? "Kaydediliyor..." : "Tarifi Kaydet"}
-        </Text>
-      </TouchableOpacity>
+      />
     </ScrollView>
   );
 }

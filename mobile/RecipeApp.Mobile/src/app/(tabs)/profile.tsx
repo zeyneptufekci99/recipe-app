@@ -1,8 +1,9 @@
+import { AppButton } from "@/components";
 import { logout } from "@/features/auth/auth-slice";
 import { storageService } from "@/services/storage";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { router } from "expo-router";
-import { Text, TouchableOpacity, View } from "react-native";
+import { Text, View } from "react-native";
 
 export default function ProfileScreen() {
   const dispatch = useAppDispatch();
@@ -37,12 +38,7 @@ export default function ProfileScreen() {
       <View className="mt-6 rounded-2xl bg-surface p-5">
         <Text className="mb-4 text-lg font-bold text-text">Account</Text>
 
-        <TouchableOpacity
-          onPress={handleLogout}
-          className="rounded-xl bg-red-500 py-4"
-        >
-          <Text className="text-center font-bold text-white">Logout</Text>
-        </TouchableOpacity>
+        <AppButton title="Logout" onPress={handleLogout} variant="danger" />
       </View>
     </View>
   );

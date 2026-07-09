@@ -1,6 +1,7 @@
+import { AppInput } from "@/components";
 import type { RecipeFormValues } from "@/features/recipe/schemas/recipe-form-schema";
 import { Control, Controller, FieldErrors } from "react-hook-form";
-import { Text, TextInput, View } from "react-native";
+import { Text, View } from "react-native";
 
 interface RecipeBasicInfoProps {
   control: Control<RecipeFormValues>;
@@ -17,11 +18,12 @@ export function RecipeBasicInfo({ control, errors }: RecipeBasicInfoProps) {
           control={control}
           name="title"
           render={({ field: { value, onChange } }) => (
-            <TextInput
+            <AppInput
+              label="Title"
               value={value}
               onChangeText={onChange}
               placeholder="Recipe title"
-              className="rounded-xl border border-border bg-surface px-4 py-4 text-text"
+              error={errors.title?.message}
             />
           )}
         />
@@ -42,14 +44,16 @@ export function RecipeBasicInfo({ control, errors }: RecipeBasicInfoProps) {
           control={control}
           name="description"
           render={({ field: { value, onChange } }) => (
-            <TextInput
+            <AppInput
+              label="Description"
               value={value}
               onChangeText={onChange}
               multiline
               numberOfLines={5}
               textAlignVertical="top"
               placeholder="Describe your recipe..."
-              className="min-h-32 rounded-xl border border-border bg-surface px-4 py-4 text-text"
+              className="min-h-32"
+              error={errors.description?.message}
             />
           )}
         />

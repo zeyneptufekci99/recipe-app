@@ -1,6 +1,7 @@
+import { AppInput } from "@/components";
 import type { CreateRecipeStepRequest } from "@/types/recipe";
 import { Ionicons } from "@expo/vector-icons";
-import { Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 
 interface StepEditorProps {
   steps: CreateRecipeStepRequest[];
@@ -66,14 +67,13 @@ export function StepEditor({ steps, onChange }: StepEditorProps) {
               </TouchableOpacity>
             </View>
 
-            <TextInput
+            <AppInput
               value={step.description}
               onChangeText={(value) => updateStep(index, value)}
               placeholder="Describe this step..."
-              placeholderTextColor="#7A7A7A"
               multiline
               textAlignVertical="top"
-              className="min-h-24 rounded-xl border border-border bg-background px-4 py-3 text-text"
+              className="min-h-24 bg-background"
             />
           </View>
         ))}

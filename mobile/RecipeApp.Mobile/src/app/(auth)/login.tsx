@@ -1,3 +1,4 @@
+import { AppInput } from "@/components";
 import { useLoginMutation } from "@/features/auth/auth-api";
 import { setCredentials } from "@/features/auth/auth-slice";
 import {
@@ -9,7 +10,7 @@ import { useAppDispatch } from "@/store/hooks";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { router } from "expo-router";
 import { Controller, useForm } from "react-hook-form";
-import { Alert, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Alert, Text, TouchableOpacity, View } from "react-native";
 
 export default function LoginScreen() {
   const dispatch = useAppDispatch();
@@ -68,14 +69,13 @@ export default function LoginScreen() {
             control={control}
             name="email"
             render={({ field: { value, onChange } }) => (
-              <TextInput
+              <AppInput
                 placeholder="Email"
                 value={value}
                 onChangeText={onChange}
                 autoCapitalize="none"
                 keyboardType="email-address"
-                className="rounded-xl border border-border bg-surface px-4 py-4 text-text"
-                placeholderTextColor="#7A7A7A"
+                error={errors.email?.message}
               />
             )}
           />
@@ -92,13 +92,12 @@ export default function LoginScreen() {
             control={control}
             name="password"
             render={({ field: { value, onChange } }) => (
-              <TextInput
+              <AppInput
                 placeholder="Şifre"
                 value={value}
                 onChangeText={onChange}
                 secureTextEntry
-                className="rounded-xl border border-border bg-surface px-4 py-4 text-text"
-                placeholderTextColor="#7A7A7A"
+                error={errors.password?.message}
               />
             )}
           />

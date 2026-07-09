@@ -1,6 +1,7 @@
+import { AppInput } from "@/components";
 import type { RecipeFormValues } from "@/features/recipe/schemas/recipe-form-schema";
 import { Control, Controller, FieldErrors } from "react-hook-form";
-import { Text, TextInput, View } from "react-native";
+import { Text, View } from "react-native";
 
 interface RecipeTimeInputsProps {
   control: Control<RecipeFormValues>;
@@ -17,12 +18,13 @@ export function RecipeTimeInputs({ control, errors }: RecipeTimeInputsProps) {
           control={control}
           name="prepTime"
           render={({ field: { value, onChange } }) => (
-            <TextInput
+            <AppInput
+              label="Prep"
               value={value}
               onChangeText={onChange}
               keyboardType="numeric"
               placeholder="10"
-              className="rounded-xl border border-border bg-surface px-4 py-4 text-text"
+              error={errors.prepTime?.message}
             />
           )}
         />
@@ -41,12 +43,13 @@ export function RecipeTimeInputs({ control, errors }: RecipeTimeInputsProps) {
           control={control}
           name="cookTime"
           render={({ field: { value, onChange } }) => (
-            <TextInput
+            <AppInput
+              label="Cook"
               value={value}
               onChangeText={onChange}
               keyboardType="numeric"
               placeholder="20"
-              className="rounded-xl border border-border bg-surface px-4 py-4 text-text"
+              error={errors.cookTime?.message}
             />
           )}
         />
@@ -65,12 +68,13 @@ export function RecipeTimeInputs({ control, errors }: RecipeTimeInputsProps) {
           control={control}
           name="servings"
           render={({ field: { value, onChange } }) => (
-            <TextInput
+            <AppInput
+              label="Servings"
               value={value}
               onChangeText={onChange}
               keyboardType="numeric"
               placeholder="2"
-              className="rounded-xl border border-border bg-surface px-4 py-4 text-text"
+              error={errors.servings?.message}
             />
           )}
         />

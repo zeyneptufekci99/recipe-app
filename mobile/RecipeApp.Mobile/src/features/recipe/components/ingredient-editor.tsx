@@ -1,6 +1,7 @@
-import { Ionicons } from "@expo/vector-icons";
-import { Text, TextInput, TouchableOpacity, View } from "react-native";
+import { AppInput } from "@/components";
 import type { CreateIngredientRequest } from "@/types/recipe";
+import { Ionicons } from "@expo/vector-icons";
+import { Text, TouchableOpacity, View } from "react-native";
 
 interface IngredientEditorProps {
   ingredients: CreateIngredientRequest[];
@@ -66,24 +67,18 @@ export function IngredientEditor({
               </TouchableOpacity>
             </View>
 
-            <TextInput
+            <AppInput
               value={ingredient.name}
-              onChangeText={(value) =>
-                updateIngredient(index, "name", value)
-              }
+              onChangeText={(value) => updateIngredient(index, "name", value)}
               placeholder="Name"
-              placeholderTextColor="#7A7A7A"
-              className="mt-3 rounded-xl border border-border bg-background px-4 py-3 text-text"
+              className="bg-background"
             />
 
-            <TextInput
+            <AppInput
               value={ingredient.amount}
-              onChangeText={(value) =>
-                updateIngredient(index, "amount", value)
-              }
+              onChangeText={(value) => updateIngredient(index, "amount", value)}
               placeholder="Amount"
-              placeholderTextColor="#7A7A7A"
-              className="mt-3 rounded-xl border border-border bg-background px-4 py-3 text-text"
+              className="bg-background"
             />
           </View>
         ))}
