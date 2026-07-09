@@ -1,10 +1,10 @@
+import { LoadingSpinner } from "@/components";
 import { setCredentials } from "@/features/auth/auth-slice";
 import { api } from "@/services/api";
 import { storageService } from "@/services/storage";
 import { useAppDispatch } from "@/store/hooks";
 import type { AuthUser } from "@/types/auth";
 import { ReactNode, useEffect, useState } from "react";
-import { ActivityIndicator, View } from "react-native";
 
 interface AuthProviderProps {
   children: ReactNode;
@@ -54,11 +54,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, [dispatch]);
 
   if (loading) {
-    return (
-      <View className="flex-1 items-center justify-center bg-background">
-        <ActivityIndicator />
-      </View>
-    );
+    return <LoadingSpinner fullScreen />;
   }
 
   return <>{children}</>;

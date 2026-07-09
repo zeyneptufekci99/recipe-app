@@ -1,3 +1,4 @@
+import { LoadingSpinner } from "@/components";
 import { RecipeForm } from "@/features/recipe/components/recipe-form";
 import { useGetRecipeByIdQuery } from "@/features/recipe/recipe-api";
 import { useLocalSearchParams } from "expo-router";
@@ -8,7 +9,9 @@ export default function EditRecipeScreen() {
 
   const { data, isLoading, error } = useGetRecipeByIdQuery(id);
 
-  if (isLoading) return <Text>Loading...</Text>;
+  if (isLoading) {
+    return <LoadingSpinner fullScreen />;
+  }
   if (error || !data) return <Text>Recipe not found</Text>;
 
   return (

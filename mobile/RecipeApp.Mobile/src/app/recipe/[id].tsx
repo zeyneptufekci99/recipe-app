@@ -7,7 +7,7 @@ import {
   useToggleFavoriteMutation,
 } from "@/features/recipe/recipe-api";
 import { router, useLocalSearchParams } from "expo-router";
-import { ScrollView, Text, TouchableOpacity } from "react-native";
+import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 
 export default function RecipeDetailScreen() {
   const [deleteRecipe, { isLoading: isDeleting }] = useDeleteRecipeMutation();
@@ -17,7 +17,28 @@ export default function RecipeDetailScreen() {
   const { data, isLoading, error } = useGetRecipeByIdQuery(id);
   const [toggleFavorite] = useToggleFavoriteMutation();
 
-  if (isLoading) return <Text>Loading...</Text>;
+  if (isLoading) {
+    return (
+      <ScrollView
+        className="flex-1 bg-background"
+        contentContainerClassName="pb-10"
+      >
+        <View className="h-64 w-full bg-border" />
+
+        <View className="gap-5 p-5">
+          <View className="h-8 w-2/3 rounded-full bg-border" />
+
+          <View className="h-4 w-1/3 rounded-full bg-border" />
+
+          <View className="mt-4 h-24 rounded-2xl bg-border" />
+
+          <View className="h-32 rounded-2xl bg-border" />
+
+          <View className="h-40 rounded-2xl bg-border" />
+        </View>
+      </ScrollView>
+    );
+  }
   if (error || !data) return <Text>Recipe not found</Text>;
 
   const handleDelete = async () => {
