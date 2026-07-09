@@ -21,7 +21,55 @@ export const recipeApi = baseApi.injectEndpoints({
         url: `/Recipe/${id}/favorite`,
         method: "PATCH",
       }),
-      invalidatesTags: ["Recipe"],
+
+      async onQueryStarted(id, { dispatch, queryFulfilled, getState }) {
+        const state = getState() as any;
+        const queries = state.api.queries;
+
+        const listPatches = Object.values(queries)
+          .filter((query: any) => query?.endpointName === "getRecipes")
+          .map((query: any) =>
+            dispatch(
+              recipeApi.util.updateQueryData(
+                "getRecipes",
+                query.originalArgs,
+                (draft) => {
+                  const recipe = draft.items.find((item) => item.id === id);
+
+                  if (recipe) {
+                    recipe.isFavorite = !recipe.isFavorite;
+                  }
+                },
+              ),
+            ),
+          );
+
+        const favoritesPatch = dispatch(
+          recipeApi.util.updateQueryData(
+            "getFavoriteRecipes",
+            undefined,
+            (draft) => {
+              draft.items = draft.items.filter((item) => item.id !== id);
+            },
+          ),
+        );
+
+        const detailPatch = dispatch(
+          recipeApi.util.updateQueryData("getRecipeById", id, (draft) => {
+            draft.isFavorite = !draft.isFavorite;
+          }),
+        );
+
+        try {
+          await queryFulfilled;
+        } catch {
+          listPatches.forEach((patch) => patch.undo());
+          favoritesPatch.undo();
+          detailPatch.undo();
+        }
+      },
+
+      invalidatesTags: [],
     }),
     getRecipeById: builder.query<RecipeDetail, string>({
       query: (id) => `/Recipe/${id}`,

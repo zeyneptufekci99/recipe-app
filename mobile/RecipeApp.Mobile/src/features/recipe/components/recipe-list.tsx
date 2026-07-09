@@ -1,6 +1,8 @@
 import { EmptyState } from "@/components/ui/empty-state";
 import type { RecipeListItem } from "@/types/recipe";
+import { router } from "expo-router";
 import { FlatList, RefreshControl } from "react-native";
+import { useToggleFavoriteMutation } from "../recipe-api";
 import { RecipeCard } from "./recipe-card";
 
 interface RecipeListProps {
@@ -14,6 +16,8 @@ export function RecipeList({
   refreshing = false,
   onRefresh,
 }: RecipeListProps) {
+  const [toggleFavorite] = useToggleFavoriteMutation();
+
   return (
     <FlatList
       data={recipes}
@@ -32,8 +36,8 @@ export function RecipeList({
       renderItem={({ item }) => (
         <RecipeCard
           recipe={item}
-          onPress={() => console.log("Recipe detail:", item.id)}
-          onFavoritePress={() => console.log("Favorite:", item.id)}
+          onPress={() => router.push(`/recipe/${item.id}`)}
+          onFavoritePress={() => toggleFavorite(item.id)}
         />
       )}
     />

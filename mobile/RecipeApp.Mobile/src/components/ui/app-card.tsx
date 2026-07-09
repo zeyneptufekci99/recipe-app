@@ -1,16 +1,17 @@
 import { cn } from "@/utils/cn";
+import { ReactNode } from "react";
 import { View } from "react-native";
 
-interface CardProps {
-  children: React.ReactNode;
+interface AppCardProps {
+  children: ReactNode;
   className?: string;
 }
 
-export function Card({ children, className }: CardProps) {
+export function AppCard({ children, className }: AppCardProps) {
   return (
     <View
       className={cn(
-        "rounded-2xl bg-surface border border-border p-4",
+        "rounded-2xl border border-border bg-surface p-4",
         className,
       )}
     >

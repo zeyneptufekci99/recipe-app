@@ -1,4 +1,4 @@
-import { Card } from "@/components/ui/card";
+import { AppCard } from "@/components/ui/app-card";
 import type { RecipeListItem } from "@/types/recipe";
 import { getImageUrl } from "@/utils/get-image-url";
 import { Ionicons } from "@expo/vector-icons";
@@ -24,7 +24,7 @@ export function RecipeCard({
   const imageSource = getImageUrl(recipe.imageUrl);
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.9}>
-      <Card className="overflow-hidden p-0">
+      <AppCard className="overflow-hidden p-0">
         <View className="relative">
           <Image
             source={
@@ -61,7 +61,7 @@ export function RecipeCard({
             difficulty={recipe.difficulty}
           />
         </View>
-      </Card>
+      </AppCard>
     </TouchableOpacity>
   );
 }

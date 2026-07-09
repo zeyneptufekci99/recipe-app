@@ -1,4 +1,4 @@
-import { AppButton, AppScreen } from "@/components";
+import { AppButton, AppCard, AppScreen } from "@/components";
 import { logout } from "@/features/auth/auth-slice";
 import { storageService } from "@/services/storage";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
@@ -19,7 +19,7 @@ export default function ProfileScreen() {
     <AppScreen>
       <Text className="mb-6 text-3xl font-bold text-text">Profile</Text>
 
-      <View className="rounded-2xl bg-surface p-5">
+      <AppCard className="p-5">
         <View className="mb-4 h-20 w-20 items-center justify-center rounded-full bg-primary">
           <Text className="text-3xl font-bold text-white">
             {user?.name?.charAt(0).toUpperCase() ?? "U"}
@@ -33,7 +33,7 @@ export default function ProfileScreen() {
         <Text className="mt-1 text-base text-muted">
           {user?.email ?? "No email"}
         </Text>
-      </View>
+      </AppCard>
 
       <View className="mt-6 rounded-2xl bg-surface p-5">
         <Text className="mb-4 text-lg font-bold text-text">Account</Text>
