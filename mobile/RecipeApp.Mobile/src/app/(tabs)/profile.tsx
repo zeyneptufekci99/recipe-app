@@ -6,9 +6,9 @@ import {
 } from "@/features/recipe/api";
 import { storageService } from "@/services/storage";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { Text, View } from "react-native";
-
+import { Text, TouchableOpacity, View } from "react-native";
 export default function ProfileScreen() {
   const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.auth.user);
@@ -43,6 +43,18 @@ export default function ProfileScreen() {
           {user?.email ?? "No email"}
         </Text>
       </AppCard>
+
+      <TouchableOpacity
+        onPress={() => router.push("/settings")}
+        className="mt-6 flex-row items-center justify-between rounded-2xl bg-surface p-5"
+      >
+        <View className="flex-row items-center gap-3">
+          <Ionicons name="settings-outline" size={22} color="#2B2B2B" />
+          <Text className="text-base font-semibold text-text">Settings</Text>
+        </View>
+
+        <Ionicons name="chevron-forward" size={20} color="#7A7A7A" />
+      </TouchableOpacity>
 
       <View className="mt-6 flex-row gap-3">
         <View className="flex-1 rounded-2xl bg-surface p-5">

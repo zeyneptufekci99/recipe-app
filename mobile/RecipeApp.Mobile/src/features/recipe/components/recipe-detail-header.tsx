@@ -1,3 +1,4 @@
+import { shareService } from "@/services/share-service";
 import type { RecipeDetail } from "@/types/recipe";
 import { getImageUrl } from "@/utils/get-image-url";
 import { Ionicons } from "@expo/vector-icons";
@@ -18,6 +19,10 @@ export function RecipeDetailHeader({
   const rating = recipe.rating ?? 4.8;
   const reviewCount = recipe.reviewCount ?? 126;
   const imageSource = getImageUrl(recipe.imageUrl);
+
+  const handleShare = async () => {
+    await shareService.shareRecipe(recipe);
+  };
 
   return (
     <View>
@@ -40,11 +45,18 @@ export function RecipeDetailHeader({
           <Ionicons name="chevron-back" size={22} color="#2B2B2B" />
         </TouchableOpacity>
 
-        <View className="absolute right-4 top-4">
+        <View className="absolute right-4 top-4 flex-row gap-2">
           <FavoriteButton
             isFavorite={recipe.isFavorite}
             onPress={onFavoritePress}
           />
+
+          <TouchableOpacity
+            onPress={handleShare}
+            className="h-10 w-10 items-center justify-center rounded-full bg-white/90"
+          >
+            <Ionicons name="share-outline" size={22} color="#2B2B2B" />
+          </TouchableOpacity>
         </View>
       </View>
 
