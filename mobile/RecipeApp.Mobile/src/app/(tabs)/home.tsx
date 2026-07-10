@@ -1,27 +1,30 @@
 import { AppButton, AppScreen } from "@/components";
 import { useGetCategoriesQuery } from "@/features/category/category-api";
 import { CategoryList } from "@/features/category/components/category-list";
-import { useGetRecipesQuery } from "@/features/recipe/api";
 import { RecipeCardSkeleton } from "@/features/recipe/components/recipe-card-skeleton";
 import { RecipeList } from "@/features/recipe/components/recipe-list";
 import { RecipeSearchBar } from "@/features/recipe/components/recipe-search-bar";
+import { SortSelector } from "@/features/recipe/components/sort-selector";
+import { useRecipes } from "@/features/recipe/hooks/use-recipes";
 import { useDebounce } from "@/hooks/use-debounce";
+import { RecipeSort } from "@/types/recipe";
 import { router } from "expo-router";
 import { useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 export default function HomeScreen() {
+  const [sortBy, setSortBy] = useState<RecipeSort>("created_desc");
   const [search, setSearch] = useState("");
   const [selectedCategoryId, setSelectedCategoryId] = useState<
     string | undefined
   >();
   const debouncedSearch = useDebounce(search, 500);
   const { data: categories } = useGetCategoriesQuery();
-  const { data, isLoading, isFetching, error, refetch } = useGetRecipesQuery({
-    search: debouncedSearch,
-    categoryId: selectedCategoryId,
-    page: 1,
-    pageSize: 10,
-  });
+  const { recipes, isLoading, isFetching, error, loadMore, refresh } =
+    useRecipes({
+      search: debouncedSearch,
+      categoryId: selectedCategoryId,
+      sortBy,
+    });
 
   if (isLoading) {
     return (
@@ -48,12 +51,19 @@ export default function HomeScreen() {
       >
         <Text className="text-center font-bold text-white">+ Yeni Tarif</Text>
       </TouchableOpacity>
-      <RecipeSearchBar value={search} onChangeText={setSearch} />
+      <View className="mb-5 flex-row gap-3">
+        <View className="flex-1">
+          <RecipeSearchBar value={search} onChangeText={setSearch} />
+        </View>
+
+        <SortSelector value={sortBy} onChange={setSortBy} />
+      </View>
       <AppButton
         title="Import Recipe from URL"
         variant="outline"
         onPress={() => router.push("/import-recipe")}
       />
+
       <CategoryList
         categories={categories ?? []}
         selectedCategoryId={selectedCategoryId}
@@ -61,9 +71,10 @@ export default function HomeScreen() {
       />
 
       <RecipeList
-        recipes={data?.items ?? []}
+        recipes={recipes}
         refreshing={isFetching && !isLoading}
-        onRefresh={refetch}
+        onRefresh={refresh}
+        onEndReached={loadMore}
       />
     </AppScreen>
   );

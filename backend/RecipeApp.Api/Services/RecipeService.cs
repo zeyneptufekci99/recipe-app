@@ -12,12 +12,14 @@ public class RecipeService : IRecipeService
 {
     private readonly AppDbContext _context;
     private readonly IMapper _mapper;
+    private readonly IImageStorageService _imageStorageService;
 
-    public RecipeService(AppDbContext context, IMapper mapper)
+    public RecipeService(AppDbContext context, IMapper mapper, IImageStorageService imageStorageService)
     {
         _context = context;
         _mapper = mapper;
-       
+        _imageStorageService = imageStorageService;
+
     }
 
     public async Task<RecipeResponseDto> CreateAsync(CreateRecipeDto dto, Guid userId)
@@ -25,6 +27,7 @@ public class RecipeService : IRecipeService
         var recipe = _mapper.Map<Recipe>(dto);
 
         recipe.UserId = userId;
+        recipe.ImageUrl = await _imageStorageService.DownloadImageAsync(recipe.ImageUrl);
 
         _context.Recipes.Add(recipe);
         await _context.SaveChangesAsync();
@@ -44,7 +47,8 @@ public class RecipeService : IRecipeService
         int? difficulty,
         int page,
         int pageSize,
-        bool? isFavorite)
+        bool? isFavorite,
+        string? sortBy)
     {
         if (page <= 0) page = 1;
         if (pageSize <= 0) pageSize = 10;
@@ -77,12 +81,26 @@ public class RecipeService : IRecipeService
 
         var totalCount = await query.CountAsync();
 
+        query = sortBy switch
+        {
+            "created_asc" => query.OrderBy(r => r.CreatedAt),
+
+            "title_asc" => query.OrderBy(r => r.Title),
+
+            "title_desc" => query.OrderByDescending(r => r.Title),
+
+            "favorites_first" => query
+                .OrderByDescending(r => r.IsFavorite)
+                .ThenByDescending(r => r.CreatedAt),
+
+            _ => query.OrderByDescending(r => r.CreatedAt),
+        };
+
         var recipes = await query
-            .OrderByDescending(r => r.CreatedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
-    
+
         return new PagedResult<RecipeResponseDto>
         {
             Items = _mapper.Map<List<RecipeResponseDto>>(recipes),
@@ -129,16 +147,9 @@ public class RecipeService : IRecipeService
         if (recipe == null)
             return null;
 
-        recipe.Title = dto.Title;
-        recipe.Description = dto.Description;
-        recipe.ImageUrl = dto.ImageUrl;
-        recipe.PrepTime = dto.PrepTime;
-        recipe.CookTime = dto.CookTime;
-        recipe.Servings = dto.Servings;
-        recipe.Difficulty = dto.Difficulty;
-        recipe.CategoryId = dto.CategoryId;
-        recipe.SourceType = dto.SourceType;
-        recipe.SourceUrl = dto.SourceUrl;
+        _mapper.Map(dto, recipe);
+
+        recipe.ImageUrl = await _imageStorageService.DownloadImageAsync(recipe.ImageUrl);
         recipe.UpdatedAt = DateTime.UtcNow;
 
         _context.Ingredients.RemoveRange(recipe.Ingredients);

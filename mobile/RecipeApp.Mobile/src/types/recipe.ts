@@ -24,8 +24,9 @@ export interface GetRecipesParams {
   search?: string;
   categoryId?: string;
   difficulty?: number;
-  page?: number;
-  pageSize?: number;
+  page: number;
+  pageSize: number;
+  sortBy?: RecipeSort;
 }
 
 export interface Ingredient {
@@ -88,3 +89,10 @@ export interface ImportedRecipe {
   ingredients: CreateIngredientRequest[];
   steps: CreateRecipeStepRequest[];
 }
+
+export type RecipeSort =
+  | "created_desc"
+  | "created_asc"
+  | "title_asc"
+  | "title_desc"
+  | "favorites_first";

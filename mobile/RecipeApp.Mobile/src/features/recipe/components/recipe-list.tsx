@@ -9,12 +9,14 @@ interface RecipeListProps {
   recipes: RecipeListItem[];
   refreshing?: boolean;
   onRefresh?: () => void;
+  onEndReached?: () => void;
 }
 
 export function RecipeList({
   recipes,
   refreshing = false,
   onRefresh,
+  onEndReached,
 }: RecipeListProps) {
   const [toggleFavorite] = useToggleFavoriteMutation();
 
@@ -24,6 +26,8 @@ export function RecipeList({
       keyExtractor={(item) => item.id}
       showsVerticalScrollIndicator={false}
       contentContainerClassName="gap-4 pb-8"
+      onEndReached={onEndReached}
+      onEndReachedThreshold={0.4}
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
       }

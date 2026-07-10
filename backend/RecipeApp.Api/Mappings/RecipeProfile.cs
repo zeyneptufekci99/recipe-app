@@ -25,6 +25,14 @@ public class RecipeProfile : Profile
         CreateMap<CreateIngredientDto, Ingredient>();
         CreateMap<CreateRecipeStepDto, RecipeStep>();
 
-        CreateMap<UpdateRecipeDto, Recipe>();
+        CreateMap<UpdateRecipeDto, Recipe>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore())
+            .ForMember(dest => dest.UserId, opt => opt.Ignore())
+            .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
+            .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
+            .ForMember(dest => dest.Ingredients, opt => opt.Ignore())
+            .ForMember(dest => dest.Steps, opt => opt.Ignore())
+            .ForMember(dest => dest.Category, opt => opt.Ignore())
+            .ForMember(dest => dest.User, opt => opt.Ignore());
     }
 }

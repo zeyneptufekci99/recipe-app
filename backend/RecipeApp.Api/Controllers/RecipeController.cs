@@ -30,11 +30,13 @@ public class RecipeController : BaseController
 
     [HttpGet]
     public async Task<IActionResult> GetAll(
+        [FromQuery] string? sortBy,
         [FromQuery] string? search,
         [FromQuery] Guid? categoryId,
         [FromQuery] int? difficulty,
         [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 10)
+        [FromQuery] int pageSize = 10
+        )
     {
         var recipes = await _recipeService.GetAllAsync(
             CurrentUserId,
@@ -43,7 +45,8 @@ public class RecipeController : BaseController
             difficulty,
             page,
             pageSize,
-            isFavorite: null
+            isFavorite: null,
+            sortBy: sortBy
         );
 
         return Ok(recipes);
@@ -59,7 +62,8 @@ public class RecipeController : BaseController
             difficulty: null,
             page: 1,
             pageSize: 50,
-            isFavorite: true
+            isFavorite: true,
+            sortBy: "created_desc"
         );
 
         return Ok(result);

@@ -11,7 +11,6 @@ export function RecipeSearchBar({ value, onChangeText }: RecipeSearchBarProps) {
       value={value}
       onChangeText={onChangeText}
       placeholder="Search recipes..."
-      containerClassName="mb-5"
     />
   );
 }

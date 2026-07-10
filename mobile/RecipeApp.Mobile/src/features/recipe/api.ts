@@ -140,4 +140,5 @@ export const {
   useGetFavoriteRecipesQuery,
   useDuplicateRecipeMutation,
   useImportRecipeFromUrlMutation,
+  useLazyGetRecipesQuery,
 } = recipeApi;

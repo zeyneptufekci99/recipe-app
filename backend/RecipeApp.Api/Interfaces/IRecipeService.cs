@@ -14,7 +14,8 @@ public interface IRecipeService
         int? difficulty,
         int page,
         int pageSize,
-        bool? isFavorite
+        bool? isFavorite,
+        string? sortBy
     );
 
     Task<RecipeDetailDto?> GetByIdAsync(Guid id, Guid userId);

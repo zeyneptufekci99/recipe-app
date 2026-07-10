@@ -47,11 +47,13 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 
-    // XML Documentation
     var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFilename);
 
-    c.IncludeXmlComments(xmlPath);
+    if (File.Exists(xmlPath))
+    {
+        c.IncludeXmlComments(xmlPath);
+    }
 });
 
 // CORS
@@ -69,7 +71,12 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IRecipeService, RecipeService>();
+
 builder.Services.AddHttpClient<IRecipeImportService, RecipeImportService>();
+
+builder.Services.AddHttpClient();
+builder.Services.AddScoped<IImageStorageService, ImageStorageService>();
+
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<CreateRecipeDtoValidator>();
 
