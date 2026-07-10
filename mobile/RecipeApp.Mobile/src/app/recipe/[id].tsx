@@ -1,11 +1,12 @@
-import { IngredientList } from "@/features/recipe/components/ingredient-list";
-import { InstructionList } from "@/features/recipe/components/instruciton-list";
-import { RecipeDetailHeader } from "@/features/recipe/components/recipe-detail-header";
 import {
   useDeleteRecipeMutation,
   useGetRecipeByIdQuery,
   useToggleFavoriteMutation,
-} from "@/features/recipe/recipe-api";
+} from "@/features/recipe/api";
+import { IngredientList } from "@/features/recipe/components/ingredient-list";
+import { InstructionList } from "@/features/recipe/components/instruciton-list";
+import { RecipeDetailHeader } from "@/features/recipe/components/recipe-detail-header";
+import { toastService } from "@/services/toast-service";
 import { router, useLocalSearchParams } from "expo-router";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 
@@ -50,6 +51,7 @@ export default function RecipeDetailScreen() {
       console.log("Delete success");
 
       router.replace("/(tabs)/home");
+      toastService.success("Recipe deleted", "Recipe removed successfully.");
     } catch (error) {
       console.log("Delete recipe error:", error);
     }

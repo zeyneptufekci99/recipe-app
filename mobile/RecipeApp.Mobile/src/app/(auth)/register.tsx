@@ -6,11 +6,12 @@ import {
   type RegisterFormValues,
 } from "@/features/auth/schemas/register-schema";
 import { storageService } from "@/services/storage";
+import { toastService } from "@/services/toast-service";
 import { useAppDispatch } from "@/store/hooks";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { router } from "expo-router";
 import { Controller, useForm } from "react-hook-form";
-import { Alert, Text, TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 
 export default function RegisterScreen() {
   const dispatch = useAppDispatch();
@@ -49,7 +50,10 @@ export default function RegisterScreen() {
       router.replace("/(tabs)/home");
     } catch (error) {
       console.log("Register error:", error);
-      Alert.alert("Hata", "Kayıt oluşturulamadı.");
+      toastService.error(
+        "Register failed",
+        "Cannot create account. Please check your information and try again.",
+      );
     }
   };
 

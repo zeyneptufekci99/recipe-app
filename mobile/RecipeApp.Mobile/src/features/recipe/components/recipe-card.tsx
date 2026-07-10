@@ -1,4 +1,4 @@
-import { AppCard } from "@/components/ui/app-card";
+import { AppCard } from "@/components/ui/app-card/app-card";
 import type { RecipeListItem } from "@/types/recipe";
 import { getImageUrl } from "@/utils/get-image-url";
 import { Ionicons } from "@expo/vector-icons";

@@ -1,7 +1,8 @@
+import { toastService } from "@/services/toast-service";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import * as ExpoImagePicker from "expo-image-picker";
-import { Alert, Text, TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 
 interface ImagePickerProps {
   imageUri?: string;
@@ -14,7 +15,11 @@ export function ImagePicker({ imageUri, onChange }: ImagePickerProps) {
       await ExpoImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (!permission.granted) {
-      Alert.alert("Permission required", "Please allow access to your photos.");
+      toastService.error(
+        "Image permission required",
+        "Please allow access to your photos to select an image.",
+      );
+
       return;
     }
 

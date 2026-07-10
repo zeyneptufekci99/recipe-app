@@ -1,8 +1,8 @@
 import { AppScreen } from "@/components";
-import { EmptyState } from "@/components/ui/empty-state";
+import { EmptyState } from "@/components/ui/empty/empty-state";
+import { useGetFavoriteRecipesQuery } from "@/features/recipe/api";
 import { RecipeCardSkeleton } from "@/features/recipe/components/recipe-card-skeleton";
 import { RecipeList } from "@/features/recipe/components/recipe-list";
-import { useGetFavoriteRecipesQuery } from "@/features/recipe/recipe-api";
 import { Text, View } from "react-native";
 
 export default function FavoritesScreen() {

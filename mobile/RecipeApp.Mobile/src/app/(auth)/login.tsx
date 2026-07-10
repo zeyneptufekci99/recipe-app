@@ -1,4 +1,4 @@
-import { AppInput } from "@/components";
+import { AppButton, AppInput, AppLink } from "@/components";
 import { useLoginMutation } from "@/features/auth/auth-api";
 import { setCredentials } from "@/features/auth/auth-slice";
 import {
@@ -6,11 +6,12 @@ import {
   type LoginFormValues,
 } from "@/features/auth/schemas/login-schema";
 import { storageService } from "@/services/storage";
+import { toastService } from "@/services/toast-service";
 import { useAppDispatch } from "@/store/hooks";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { router } from "expo-router";
 import { Controller, useForm } from "react-hook-form";
-import { Alert, Text, TouchableOpacity, View } from "react-native";
+import { Text, View } from "react-native";
 
 export default function LoginScreen() {
   const dispatch = useAppDispatch();
@@ -48,7 +49,10 @@ export default function LoginScreen() {
       router.replace("/(tabs)/home");
     } catch (error) {
       console.log("Login error:", error);
-      Alert.alert("Hata", "Giriş yapılamadı.");
+      toastService.error(
+        "Login failed",
+        "Please check your email and password.",
+      );
     }
   };
 
@@ -109,20 +113,15 @@ export default function LoginScreen() {
           ) : null}
         </View>
 
-        <TouchableOpacity
+        <AppButton
+          title={isLoading ? "Giriş yapılıyor..." : "Giriş Yap"}
           onPress={handleSubmit(onSubmit)}
           disabled={isLoading}
-          className="mt-2 rounded-xl bg-primary py-4"
-        >
-          <Text className="text-center text-base font-bold text-white">
-            {isLoading ? "Giriş yapılıyor..." : "Giriş Yap"}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => router.push("/register")}>
-          <Text className="text-center font-semibold text-primary">
-            Hesabın yok mu? Kayıt ol
-          </Text>
-        </TouchableOpacity>
+        />
+        <AppLink
+          title="Hesabın yok mu? Kayıt ol"
+          onPress={() => router.push("/register")}
+        />
       </View>
     </View>
   );

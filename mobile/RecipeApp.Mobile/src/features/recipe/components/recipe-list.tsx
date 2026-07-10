@@ -1,8 +1,8 @@
-import { EmptyState } from "@/components/ui/empty-state";
+import { EmptyState } from "@/components/ui/empty/empty-state";
 import type { RecipeListItem } from "@/types/recipe";
 import { router } from "expo-router";
 import { FlatList, RefreshControl } from "react-native";
-import { useToggleFavoriteMutation } from "../recipe-api";
+import { useToggleFavoriteMutation } from "../api";
 import { RecipeCard } from "./recipe-card";
 
 interface RecipeListProps {

@@ -1,3 +1,4 @@
+import { AppSection } from "@/components";
 import type { Ingredient } from "@/types/recipe";
 import { Text, View } from "react-native";
 
@@ -7,9 +8,7 @@ interface IngredientListProps {
 
 export function IngredientList({ ingredients }: IngredientListProps) {
   return (
-    <View className="mt-6">
-      <Text className="mb-3 text-xl font-bold text-text">Ingredients</Text>
-
+    <AppSection title="Ingredients">
       <View className="gap-2">
         {ingredients.map((ingredient) => (
           <View
@@ -26,6 +25,6 @@ export function IngredientList({ ingredients }: IngredientListProps) {
           </View>
         ))}
       </View>
-    </View>
+    </AppSection>
   );
 }

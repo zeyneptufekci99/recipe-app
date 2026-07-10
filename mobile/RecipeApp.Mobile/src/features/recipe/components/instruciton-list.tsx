@@ -1,3 +1,4 @@
+import { AppSection } from "@/components";
 import type { RecipeStep } from "@/types/recipe";
 import { Text, View } from "react-native";
 
@@ -7,9 +8,7 @@ interface InstructionListProps {
 
 export function InstructionList({ steps }: InstructionListProps) {
   return (
-    <View className="mt-6">
-      <Text className="mb-3 text-xl font-bold text-text">Instructions</Text>
-
+    <AppSection title="Ingredients">
       <View className="gap-3">
         {steps.map((step) => (
           <View key={step.id} className="flex-row gap-3">
@@ -25,6 +24,6 @@ export function InstructionList({ steps }: InstructionListProps) {
           </View>
         ))}
       </View>
-    </View>
+    </AppSection>
   );
 }

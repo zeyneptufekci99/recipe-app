@@ -1,11 +1,12 @@
 import { AppButton } from "@/components";
-import { ImagePicker } from "@/components/ui/image-picker";
+import { ImagePicker } from "@/components/ui/image-picker/image-picker";
 import { useGetCategoriesQuery } from "@/features/category/category-api";
 import { CategorySelector } from "@/features/category/components/category-selector";
 import {
   recipeFormSchema,
   type RecipeFormValues,
 } from "@/features/recipe/schemas/recipe-form-schema";
+import { toastService } from "@/services/toast-service";
 import { uploadService } from "@/services/upload-service";
 import type {
   CreateIngredientRequest,
@@ -16,11 +17,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { Alert, ScrollView, Text } from "react-native";
-import {
-  useCreateRecipeMutation,
-  useUpdateRecipeMutation,
-} from "../recipe-api";
+import { ScrollView, Text } from "react-native";
+import { useCreateRecipeMutation, useUpdateRecipeMutation } from "../api";
 import { DifficultySelector } from "./difficulty-selector";
 import { IngredientEditor } from "./ingredient-editor";
 import { RecipeBasicInfo } from "./recipe-basic-info";
@@ -121,12 +119,16 @@ export function RecipeForm({ recipe, mode = "create" }: RecipeFormProps) {
       const validSteps = steps.filter((s) => s.description.trim());
 
       if (validIngredients.length === 0) {
-        Alert.alert("Hata", "En az bir malzeme eklemelisin.");
+        toastService.error(
+          "Ingredient error",
+          "En az bir malzeme eklemelisin.",
+        );
+
         return;
       }
 
       if (validSteps.length === 0) {
-        Alert.alert("Hata", "En az bir adım eklemelisin.");
+        toastService.error("Step error", "En az bir adım eklemelisin.");
         return;
       }
 
@@ -160,17 +162,21 @@ export function RecipeForm({ recipe, mode = "create" }: RecipeFormProps) {
           body,
         }).unwrap();
 
-        Alert.alert("Başarılı", "Tarif güncellendi.");
+        toastService.success(
+          "Recipe updated",
+          "You have successfully updated the recipe.",
+        );
       } else {
         await createRecipe(body).unwrap();
 
-        Alert.alert("Başarılı", "Tarif oluşturuldu.");
+        toastService.success("Recipe created", "Your recipe has been saved.");
       }
 
       router.back();
     } catch (error) {
       console.log("Create recipe error:", error);
-      Alert.alert("Hata", "Tarif oluşturulamadı.");
+
+      toastService.error("Create recipe error", "Tarif oluşturulamadı.");
     }
   };
 

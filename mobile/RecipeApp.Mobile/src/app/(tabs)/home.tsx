@@ -1,10 +1,10 @@
 import { AppScreen } from "@/components";
 import { useGetCategoriesQuery } from "@/features/category/category-api";
 import { CategoryList } from "@/features/category/components/category-list";
+import { useGetRecipesQuery } from "@/features/recipe/api";
 import { RecipeCardSkeleton } from "@/features/recipe/components/recipe-card-skeleton";
 import { RecipeList } from "@/features/recipe/components/recipe-list";
 import { RecipeSearchBar } from "@/features/recipe/components/recipe-search-bar";
-import { useGetRecipesQuery } from "@/features/recipe/recipe-api";
 import { useDebounce } from "@/hooks/use-debounce";
 import { router } from "expo-router";
 import { useState } from "react";

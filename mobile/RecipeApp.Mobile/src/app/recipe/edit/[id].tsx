@@ -1,6 +1,6 @@
 import { AppScreen, LoadingSpinner } from "@/components";
+import { useGetRecipeByIdQuery } from "@/features/recipe/api";
 import { RecipeForm } from "@/features/recipe/components/recipe-form";
-import { useGetRecipeByIdQuery } from "@/features/recipe/recipe-api";
 import { useLocalSearchParams } from "expo-router";
 import { Text } from "react-native";
 
