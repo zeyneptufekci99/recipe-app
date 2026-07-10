@@ -11,10 +11,14 @@ namespace RecipeApp.Api.Controllers;
 public class RecipeController : BaseController
 {
     private readonly IRecipeService _recipeService;
+    private readonly IRecipeImportService _recipeImportService;
 
-    public RecipeController(IRecipeService recipeService)
+    public RecipeController(
+       IRecipeService recipeService,
+       IRecipeImportService recipeImportService)
     {
         _recipeService = recipeService;
+        _recipeImportService = recipeImportService;
     }
 
     [HttpPost]
@@ -113,5 +117,15 @@ public class RecipeController : BaseController
             return NotFound("Tarif bulunamadı.");
 
         return Ok(recipe);
+    }
+    [HttpPost("import-url")]
+    public async Task<IActionResult> ImportFromUrl(ImportRecipeFromUrlDto dto)
+    {
+        if (string.IsNullOrWhiteSpace(dto.Url))
+            return BadRequest("Url zorunludur.");
+
+        var result = await _recipeImportService.ImportFromUrlAsync(dto.Url);
+
+        return Ok(result);
     }
 }

@@ -1,30 +1,21 @@
-import Toast from "react-native-toast-message";
+import { toast } from "sonner-native";
 
 export const toastService = {
   success(title: string, message?: string) {
-    Toast.show({
-      type: "success",
-      text1: title,
-      text2: message,
-      position: "bottom",
+    toast.success(title, {
+      description: message,
     });
   },
 
   error(title: string, message?: string) {
-    Toast.show({
-      type: "error",
-      text1: title,
-      text2: message,
-      position: "bottom",
+    toast.error(title, {
+      description: message,
     });
   },
 
   info(title: string, message?: string) {
-    Toast.show({
-      type: "info",
-      text1: title,
-      text2: message,
-      position: "bottom",
+    toast(title, {
+      description: message,
     });
   },
 };

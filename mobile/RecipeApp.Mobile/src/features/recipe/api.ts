@@ -2,6 +2,8 @@ import { baseApi } from "@/services/base-api";
 import type {
   CreateRecipeRequest,
   GetRecipesParams,
+  ImportedRecipe,
+  ImportRecipeFromUrlRequest,
   PagedResult,
   RecipeDetail,
   RecipeListItem,
@@ -115,6 +117,16 @@ export const recipeApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["Recipe"],
     }),
+    importRecipeFromUrl: builder.mutation<
+      ImportedRecipe,
+      ImportRecipeFromUrlRequest
+    >({
+      query: (body) => ({
+        url: "/Recipe/import-url",
+        method: "POST",
+        body,
+      }),
+    }),
   }),
 });
 
@@ -127,4 +139,5 @@ export const {
   useDeleteRecipeMutation,
   useGetFavoriteRecipesQuery,
   useDuplicateRecipeMutation,
+  useImportRecipeFromUrlMutation,
 } = recipeApi;

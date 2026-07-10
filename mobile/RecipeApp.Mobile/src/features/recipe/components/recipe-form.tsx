@@ -11,6 +11,7 @@ import { uploadService } from "@/services/upload-service";
 import type {
   CreateIngredientRequest,
   CreateRecipeStepRequest,
+  ImportedRecipe,
   RecipeDetail,
 } from "@/types/recipe";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -27,10 +28,15 @@ import { StepEditor } from "./step-editor";
 
 interface RecipeFormProps {
   recipe?: RecipeDetail;
+  importedRecipe?: ImportedRecipe;
   mode?: "create" | "edit";
 }
 
-export function RecipeForm({ recipe, mode = "create" }: RecipeFormProps) {
+export function RecipeForm({
+  recipe,
+  importedRecipe,
+  mode = "create",
+}: RecipeFormProps) {
   const {
     control,
     handleSubmit,
@@ -41,11 +47,20 @@ export function RecipeForm({ recipe, mode = "create" }: RecipeFormProps) {
   } = useForm<RecipeFormValues>({
     resolver: zodResolver(recipeFormSchema),
     defaultValues: {
-      title: recipe?.title ?? "",
-      description: recipe?.description ?? "",
-      prepTime: recipe?.prepTime?.toString() ?? "",
-      cookTime: recipe?.cookTime?.toString() ?? "",
-      servings: recipe?.servings?.toString() ?? "",
+      title: recipe?.title ?? importedRecipe?.title ?? "",
+      description: recipe?.description ?? importedRecipe?.description ?? "",
+      prepTime:
+        recipe?.prepTime?.toString() ??
+        importedRecipe?.prepTime?.toString() ??
+        "",
+      cookTime:
+        recipe?.cookTime?.toString() ??
+        importedRecipe?.cookTime?.toString() ??
+        "",
+      servings:
+        recipe?.servings?.toString() ??
+        importedRecipe?.servings?.toString() ??
+        "",
       difficulty: recipe?.difficulty ?? 1,
       categoryId: recipe?.categoryId ?? "",
     },
@@ -94,7 +109,9 @@ export function RecipeForm({ recipe, mode = "create" }: RecipeFormProps) {
           name: i.name,
           amount: i.amount ?? "",
         }))
-      : [{ name: "", amount: "" }],
+      : importedRecipe?.ingredients?.length
+        ? importedRecipe.ingredients
+        : [{ name: "", amount: "" }],
   );
 
   const [steps, setSteps] = useState<CreateRecipeStepRequest[]>(
@@ -103,17 +120,24 @@ export function RecipeForm({ recipe, mode = "create" }: RecipeFormProps) {
           stepNumber: s.stepNumber,
           description: s.description,
         }))
-      : [{ stepNumber: 1, description: "" }],
+      : importedRecipe?.steps?.length
+        ? importedRecipe.steps
+        : [{ stepNumber: 1, description: "" }],
   );
 
-  const [imageUri, setImageUri] = useState("");
-
+  const [imageUri, setImageUri] = useState(
+    recipe?.imageUrl ?? importedRecipe?.imageUrl ?? "",
+  );
   const { data: categories } = useGetCategoriesQuery();
   const [createRecipe, { isLoading: isCreating }] = useCreateRecipeMutation();
   const [updateRecipe, { isLoading: isUpdating }] = useUpdateRecipeMutation();
 
   const isLoading = isCreating || isUpdating;
   const onSubmit = async (values: RecipeFormValues) => {
+    console.log("SUBMIT VALUES:", values);
+    console.log("IMAGE URI:", imageUri);
+    console.log("INGREDIENTS:", ingredients);
+    console.log("STEPS:", steps);
     try {
       const validIngredients = ingredients.filter((i) => i.name.trim());
       const validSteps = steps.filter((s) => s.description.trim());
@@ -134,14 +158,18 @@ export function RecipeForm({ recipe, mode = "create" }: RecipeFormProps) {
 
       let uploadedImageUrl = "";
 
-      if (imageUri && !imageUri.startsWith("/uploads/")) {
+      if (
+        imageUri &&
+        !imageUri.startsWith("/uploads/") &&
+        !imageUri.startsWith("http")
+      ) {
         uploadedImageUrl = await uploadService.uploadImage(imageUri);
       }
 
       const body = {
         title: values.title,
         description: values.description,
-        imageUrl: uploadedImageUrl || recipe?.imageUrl || "",
+        imageUrl: uploadedImageUrl || recipe?.imageUrl || imageUri || "",
         prepTime: Number(values.prepTime) || 0,
         cookTime: Number(values.cookTime) || 0,
         servings: Number(values.servings) || 1,
@@ -212,7 +240,13 @@ export function RecipeForm({ recipe, mode = "create" }: RecipeFormProps) {
 
       <AppButton
         title={isLoading ? "Kaydediliyor..." : "Tarifi Kaydet"}
-        onPress={handleSubmit(onSubmit)}
+        onPress={handleSubmit(onSubmit, (formErrors) => {
+          console.log("FORM ERRORS:", formErrors);
+          toastService.error(
+            "Form eksik",
+            "Lütfen zorunlu alanları kontrol et.",
+          );
+        })}
         disabled={isLoading}
       />
     </ScrollView>

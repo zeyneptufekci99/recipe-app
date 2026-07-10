@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
+using RecipeApp.Api.DTOs;
 namespace RecipeApp.Api.Controllers;
 
 [ApiController]
@@ -10,8 +10,10 @@ public class UploadController : ControllerBase
 {
     [HttpPost("image")]
     [Consumes("multipart/form-data")]
-    public async Task<IActionResult> UploadImage([FromForm(Name = "file")] IFormFile file)
+    public async Task<IActionResult> UploadImage([FromForm] UploadImageDto dto)
     {
+        var file = dto.File;
+
         if (file == null || file.Length == 0)
             return BadRequest("Dosya seçilmedi.");
 
@@ -34,9 +36,6 @@ public class UploadController : ControllerBase
 
         var imageUrl = $"/uploads/{fileName}";
 
-        return Ok(new
-        {
-            imageUrl
-        });
+        return Ok(new { imageUrl });
     }
 }

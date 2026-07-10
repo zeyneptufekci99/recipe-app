@@ -73,3 +73,18 @@ export interface CreateRecipeRequest {
   ingredients: CreateIngredientRequest[];
   steps: CreateRecipeStepRequest[];
 }
+
+export interface ImportRecipeFromUrlRequest {
+  url: string;
+}
+
+export interface ImportedRecipe {
+  title: string;
+  description?: string | null;
+  imageUrl?: string | null;
+  prepTime: number;
+  cookTime: number;
+  servings: number;
+  ingredients: CreateIngredientRequest[];
+  steps: CreateRecipeStepRequest[];
+}

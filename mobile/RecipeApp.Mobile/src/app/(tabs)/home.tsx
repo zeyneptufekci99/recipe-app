@@ -1,4 +1,4 @@
-import { AppScreen } from "@/components";
+import { AppButton, AppScreen } from "@/components";
 import { useGetCategoriesQuery } from "@/features/category/category-api";
 import { CategoryList } from "@/features/category/components/category-list";
 import { useGetRecipesQuery } from "@/features/recipe/api";
@@ -49,7 +49,11 @@ export default function HomeScreen() {
         <Text className="text-center font-bold text-white">+ Yeni Tarif</Text>
       </TouchableOpacity>
       <RecipeSearchBar value={search} onChangeText={setSearch} />
-
+      <AppButton
+        title="Import Recipe from URL"
+        variant="outline"
+        onPress={() => router.push("/import-recipe")}
+      />
       <CategoryList
         categories={categories ?? []}
         selectedCategoryId={selectedCategoryId}

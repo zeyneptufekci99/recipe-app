@@ -1,8 +1,8 @@
 import { AuthProvider } from "@/features/auth/auth-provider";
 import { store } from "@/store";
 import { Stack } from "expo-router";
-import Toast from "react-native-toast-message";
 import { Provider } from "react-redux";
+import { Toaster } from "sonner-native";
 import "../global.css";
 
 export default function RootLayout() {
@@ -10,7 +10,7 @@ export default function RootLayout() {
     <Provider store={store}>
       <AuthProvider>
         <Stack screenOptions={{ headerShown: false }} />
-        <Toast />
+        <Toaster />
       </AuthProvider>
     </Provider>
   );
