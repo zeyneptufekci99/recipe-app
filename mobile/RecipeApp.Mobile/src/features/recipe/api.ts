@@ -108,6 +108,13 @@ export const recipeApi = baseApi.injectEndpoints({
       query: () => "/Recipe/favorites",
       providesTags: ["Recipe"],
     }),
+    duplicateRecipe: builder.mutation<RecipeDetail, string>({
+      query: (id) => ({
+        url: `/Recipe/${id}/duplicate`,
+        method: "POST",
+      }),
+      invalidatesTags: ["Recipe"],
+    }),
   }),
 });
 
@@ -119,4 +126,5 @@ export const {
   useUpdateRecipeMutation,
   useDeleteRecipeMutation,
   useGetFavoriteRecipesQuery,
+  useDuplicateRecipeMutation,
 } = recipeApi;

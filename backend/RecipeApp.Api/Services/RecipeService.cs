@@ -177,4 +177,49 @@ public class RecipeService : IRecipeService
 
         return _mapper.Map<RecipeResponseDto>(recipe);
     }
+
+    public async Task<RecipeDetailDto?> DuplicateAsync(Guid id, Guid userId)
+    {
+        var recipe = await _context.Recipes
+            .AsNoTracking()
+            .Include(r => r.Ingredients)
+            .Include(r => r.Steps)
+            .FirstOrDefaultAsync(r => r.Id == id && r.UserId == userId);
+
+        if (recipe == null)
+            return null;
+
+        var duplicatedRecipe = new Recipe
+        {
+            UserId = userId,
+            Title = $"{recipe.Title} Copy",
+            Description = recipe.Description,
+            ImageUrl = recipe.ImageUrl,
+            PrepTime = recipe.PrepTime,
+            CookTime = recipe.CookTime,
+            Servings = recipe.Servings,
+            Difficulty = recipe.Difficulty,
+            CategoryId = recipe.CategoryId,
+            SourceType = recipe.SourceType,
+            SourceUrl = recipe.SourceUrl,
+            IsFavorite = false,
+
+            Ingredients = recipe.Ingredients.Select(i => new Ingredient
+            {
+                Name = i.Name,
+                Amount = i.Amount,
+            }).ToList(),
+
+            Steps = recipe.Steps.Select(s => new RecipeStep
+            {
+                StepNumber = s.StepNumber,
+                Description = s.Description,
+            }).ToList(),
+        };
+
+        _context.Recipes.Add(duplicatedRecipe);
+        await _context.SaveChangesAsync();
+
+        return await GetByIdAsync(duplicatedRecipe.Id, userId);
+    }
 }

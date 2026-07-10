@@ -104,4 +104,14 @@ public class RecipeController : BaseController
 
         return Ok(recipe);
     }
+    [HttpPost("{id}/duplicate")]
+    public async Task<IActionResult> Duplicate(Guid id)
+    {
+        var recipe = await _recipeService.DuplicateAsync(id, CurrentUserId);
+
+        if (recipe == null)
+            return NotFound("Tarif bulunamadı.");
+
+        return Ok(recipe);
+    }
 }

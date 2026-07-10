@@ -1,5 +1,7 @@
+import { AppButton } from "@/components";
 import {
   useDeleteRecipeMutation,
+  useDuplicateRecipeMutation,
   useGetRecipeByIdQuery,
   useToggleFavoriteMutation,
 } from "@/features/recipe/api";
@@ -17,6 +19,8 @@ export default function RecipeDetailScreen() {
 
   const { data, isLoading, error } = useGetRecipeByIdQuery(id);
   const [toggleFavorite] = useToggleFavoriteMutation();
+  const [duplicateRecipe, { isLoading: isDuplicating }] =
+    useDuplicateRecipeMutation();
 
   if (isLoading) {
     return (
@@ -57,6 +61,19 @@ export default function RecipeDetailScreen() {
     }
   };
 
+  const handleDuplicate = async () => {
+    try {
+      const duplicated = await duplicateRecipe(data.id).unwrap();
+
+      toastService.success("Tarif kopyalandı", "Yeni kopya oluşturuldu.");
+
+      router.push(`/recipe/${duplicated.id}`);
+    } catch (error) {
+      console.log("Duplicate recipe error:", error);
+      toastService.error("İşlem başarısız", "Tarif kopyalanamadı.");
+    }
+  };
+
   return (
     <ScrollView
       className="flex-1 bg-background"
@@ -75,6 +92,12 @@ export default function RecipeDetailScreen() {
       >
         <Text className="text-center font-bold text-white">Düzenle</Text>
       </TouchableOpacity>
+      <AppButton
+        title={isDuplicating ? "Kopyalanıyor..." : "Tarifi Kopyala"}
+        onPress={handleDuplicate}
+        disabled={isDuplicating}
+        variant="outline"
+      />
       <IngredientList ingredients={data.ingredients} />
 
       <InstructionList steps={data.steps} />
