@@ -100,9 +100,13 @@ public class RecipeImportService : IRecipeImportService
 
     private static string? GetImageUrl(HtmlDocument doc)
     {
-        return doc.DocumentNode
+        var imageUrl = doc.DocumentNode
             .SelectSingleNode("//meta[@property='og:image']")
-            ?.GetAttributeValue("content", null);
+            ?.GetAttributeValue("content", string.Empty);
+
+        return string.IsNullOrWhiteSpace(imageUrl)
+            ? null
+            : imageUrl;
     }
 
     private static int GetPrepTime(HtmlDocument doc)
