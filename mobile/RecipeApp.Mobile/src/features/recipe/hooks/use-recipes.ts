@@ -1,6 +1,6 @@
 import { useLazyGetRecipesQuery } from "@/features/recipe/api";
 import type { RecipeListItem, RecipeSort } from "@/types/recipe";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 interface UseRecipesParams {
   search?: string;
@@ -15,51 +15,96 @@ export function useRecipes({
   sortBy = "created_desc",
   pageSize = 10,
 }: UseRecipesParams) {
-  const [page, setPage] = useState(1);
   const [recipes, setRecipes] = useState<RecipeListItem[]>([]);
   const [hasMore, setHasMore] = useState(true);
+
+  const pageRef = useRef(1);
+  const hasMoreRef = useRef(true);
+  const requestVersionRef = useRef(0);
 
   const [getRecipes, { isFetching, isLoading, error }] =
     useLazyGetRecipesQuery();
 
   const fetchRecipes = useCallback(
-    async (pageToFetch: number, shouldReset = false) => {
-      const result = await getRecipes({
-        search,
-        categoryId,
-        sortBy,
-        page: pageToFetch,
-        pageSize,
-      }).unwrap();
+    async (
+      pageToFetch: number,
+      shouldReset: boolean,
+      requestVersion: number,
+    ) => {
+      try {
+        const result = await getRecipes({
+          search,
+          categoryId,
+          sortBy,
+          page: pageToFetch,
+          pageSize,
+        }).unwrap();
 
-      setRecipes((prev) =>
-        shouldReset ? result.items : [...prev, ...result.items],
-      );
+        // Arama, kategori veya sıralama bu istek tamamlanmadan değiştiyse
+        // eski cevabı listeye uygulama.
+        if (requestVersion !== requestVersionRef.current) {
+          return;
+        }
 
-      setHasMore(result.page < result.totalPages);
+        setRecipes((currentRecipes) => {
+          if (shouldReset) {
+            return result.items;
+          }
+
+          const recipeMap = new Map(
+            currentRecipes.map((recipe) => [recipe.id, recipe]),
+          );
+
+          result.items.forEach((recipe) => {
+            recipeMap.set(recipe.id, recipe);
+          });
+
+          return Array.from(recipeMap.values());
+        });
+
+        const canLoadMore = result.page < result.totalPages;
+
+        pageRef.current = pageToFetch;
+        hasMoreRef.current = canLoadMore;
+        setHasMore(canLoadMore);
+      } catch (fetchError) {
+        console.log("Fetch recipes error:", fetchError);
+      }
     },
-    [getRecipes, search, categoryId, sortBy, pageSize],
+    [categoryId, getRecipes, pageSize, search, sortBy],
   );
 
   useEffect(() => {
-    setPage(1);
-    setHasMore(true);
-    fetchRecipes(1, true);
+    const requestVersion = requestVersionRef.current + 1;
+
+    requestVersionRef.current = requestVersion;
+    pageRef.current = 1;
+    hasMoreRef.current = true;
+
+    // Query parametreleri değiştiğinde uzak API ile senkronizasyon sağlanıyor.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void fetchRecipes(1, true, requestVersion);
   }, [fetchRecipes]);
 
-  const loadMore = () => {
-    if (isFetching || !hasMore) return;
+  const loadMore = useCallback(() => {
+    if (isFetching || !hasMoreRef.current) {
+      return;
+    }
 
-    const nextPage = page + 1;
-    setPage(nextPage);
-    fetchRecipes(nextPage);
-  };
+    const nextPage = pageRef.current + 1;
 
-  const refresh = () => {
-    setPage(1);
-    setHasMore(true);
-    fetchRecipes(1, true);
-  };
+    void fetchRecipes(nextPage, false, requestVersionRef.current);
+  }, [fetchRecipes, isFetching]);
+
+  const refresh = useCallback(() => {
+    const requestVersion = requestVersionRef.current + 1;
+
+    requestVersionRef.current = requestVersion;
+    pageRef.current = 1;
+    hasMoreRef.current = true;
+
+    void fetchRecipes(1, true, requestVersion);
+  }, [fetchRecipes]);
 
   return {
     recipes,

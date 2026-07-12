@@ -13,8 +13,8 @@ import type {
 } from "@/types/recipe";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { router } from "expo-router";
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useState } from "react";
+import { useForm, useWatch } from "react-hook-form";
 import { useCreateRecipeMutation, useUpdateRecipeMutation } from "../api";
 
 interface UseRecipeFormParams {
@@ -31,8 +31,6 @@ export function useRecipeForm({
   const {
     control,
     handleSubmit,
-    watch,
-    reset,
     setValue,
     formState: { errors },
   } = useForm<RecipeFormValues>({
@@ -59,9 +57,9 @@ export function useRecipeForm({
 
   const [ingredients, setIngredients] = useState<CreateIngredientRequest[]>(
     recipe?.ingredients?.length
-      ? recipe.ingredients.map((i) => ({
-          name: i.name,
-          amount: i.amount ?? "",
+      ? recipe.ingredients.map((ingredient) => ({
+          name: ingredient.name,
+          amount: ingredient.amount ?? "",
         }))
       : importedRecipe?.ingredients?.length
         ? importedRecipe.ingredients
@@ -70,9 +68,9 @@ export function useRecipeForm({
 
   const [steps, setSteps] = useState<CreateRecipeStepRequest[]>(
     recipe?.steps?.length
-      ? recipe.steps.map((s) => ({
-          stepNumber: s.stepNumber,
-          description: s.description,
+      ? recipe.steps.map((step) => ({
+          stepNumber: step.stepNumber,
+          description: step.description,
         }))
       : importedRecipe?.steps?.length
         ? importedRecipe.steps
@@ -83,48 +81,20 @@ export function useRecipeForm({
     recipe?.imageUrl ?? importedRecipe?.imageUrl ?? "",
   );
 
-  const categoryId = watch("categoryId");
-  const difficulty = watch("difficulty");
+  const categoryId = useWatch({
+    control,
+    name: "categoryId",
+  });
+  const difficulty = useWatch({
+    control,
+    name: "difficulty",
+  });
 
   const { data: categories } = useGetCategoriesQuery();
   const [createRecipe, { isLoading: isCreating }] = useCreateRecipeMutation();
   const [updateRecipe, { isLoading: isUpdating }] = useUpdateRecipeMutation();
 
   const isLoading = isCreating || isUpdating;
-
-  useEffect(() => {
-    if (!recipe) return;
-
-    reset({
-      title: recipe.title,
-      description: recipe.description ?? "",
-      categoryId: recipe.categoryId,
-      prepTime: recipe.prepTime.toString(),
-      cookTime: recipe.cookTime.toString(),
-      servings: recipe.servings.toString(),
-      difficulty: recipe.difficulty,
-    });
-
-    setIngredients(
-      recipe.ingredients.length
-        ? recipe.ingredients.map((i) => ({
-            name: i.name,
-            amount: i.amount ?? "",
-          }))
-        : [{ name: "", amount: "" }],
-    );
-
-    setSteps(
-      recipe.steps.length
-        ? recipe.steps.map((s) => ({
-            stepNumber: s.stepNumber,
-            description: s.description,
-          }))
-        : [{ stepNumber: 1, description: "" }],
-    );
-
-    setImageUri(recipe.imageUrl ?? "");
-  }, [recipe, reset]);
 
   const onSubmit = async (values: RecipeFormValues) => {
     try {
