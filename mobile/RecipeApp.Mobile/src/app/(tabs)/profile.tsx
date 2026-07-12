@@ -1,10 +1,8 @@
-import { AppButton, AppCard, AppScreen } from "@/components";
-import { logout } from "@/features/auth/auth-slice";
+import { AppCard, AppScreen } from "@/components";
 import {
   useGetFavoriteRecipesQuery,
   useGetRecipesQuery,
 } from "@/features/recipe/api";
-import { storageService } from "@/services/storage";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
@@ -18,11 +16,6 @@ export default function ProfileScreen() {
   });
 
   const { data: favoritesData } = useGetFavoriteRecipesQuery();
-  const handleLogout = async () => {
-    await storageService.removeToken();
-    dispatch(logout());
-    router.replace("/login");
-  };
 
   return (
     <AppScreen>
@@ -70,12 +63,6 @@ export default function ProfileScreen() {
           </Text>
           <Text className="mt-1 text-muted">Favorilerim</Text>
         </View>
-      </View>
-
-      <View className="mt-6 rounded-2xl bg-surface p-5">
-        <Text className="mb-4 text-lg font-bold text-text">Account</Text>
-
-        <AppButton title="Logout" onPress={handleLogout} variant="danger" />
       </View>
     </AppScreen>
   );

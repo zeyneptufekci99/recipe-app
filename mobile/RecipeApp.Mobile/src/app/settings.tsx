@@ -1,46 +1,109 @@
-import { AppCard, AppLink, AppScreen } from "@/components";
-import { Ionicons } from "@expo/vector-icons";
+import { AppCard, AppScreen, ConfirmDialog, PageHeader } from "@/components";
+
+import { logout } from "@/features/auth/auth-slice";
+import { SettingsItem } from "@/features/settings/components/settings-item";
+import { ThemeSelector } from "@/features/settings/components/theme-selector";
+import { shareService } from "@/services/share-service";
+import { storageService } from "@/services/storage";
+import { toastService } from "@/services/toast-service";
+import { useAppDispatch } from "@/store/hooks";
+import Constants from "expo-constants";
 import { router } from "expo-router";
-import { Text, TouchableOpacity, View } from "react-native";
+import { useState } from "react";
+import { Text, View } from "react-native";
 
 export default function SettingsScreen() {
+  const dispatch = useAppDispatch();
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const appVersion =
+    Constants.expoConfig?.version ?? Constants.nativeAppVersion ?? "1.0.0";
+
+  const handleShareApp = async () => {
+    try {
+      await shareService.shareApp();
+    } catch (error) {
+      console.log("Share app error:", error);
+      toastService.error("Paylaşım başarısız", "Uygulama paylaşılamadı.");
+    }
+  };
+
+  const handleConfirmLogout = async () => {
+    try {
+      setIsLoggingOut(true);
+
+      await storageService.removeToken();
+
+      dispatch(logout());
+
+      router.replace("/login");
+    } catch (error) {
+      console.log("Logout error:", error);
+
+      toastService.error("Çıkış yapılamadı", "Lütfen tekrar deneyin.");
+    } finally {
+      setIsLoggingOut(false);
+      setShowLogoutDialog(false);
+    }
+  };
+
   return (
     <AppScreen>
-      <View className="mb-6 flex-row items-center gap-3">
-        <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color="#2B2B2B" />
-        </TouchableOpacity>
+      <PageHeader title="Ayarlar" />
 
-        <Text className="text-3xl font-bold text-text">Settings</Text>
-      </View>
+      <ThemeSelector />
+
+      <Text className="mb-3 mt-8 text-lg font-bold text-text">Uygulama</Text>
 
       <AppCard>
-        <TouchableOpacity className="flex-row items-center justify-between py-4">
-          <Text className="text-base text-text">Theme</Text>
-
-          <Text className="text-muted">Coming Soon</Text>
-        </TouchableOpacity>
-
-        <View className="h-px bg-border" />
-
-        <TouchableOpacity className="flex-row items-center justify-between py-4">
-          <Text className="text-base text-text">Language</Text>
-
-          <Text className="text-muted">Coming Soon</Text>
-        </TouchableOpacity>
+        <SettingsItem
+          title="Uygulamayı Paylaş"
+          description="RecipeApp'i arkadaşlarınla paylaş"
+          icon="share-social-outline"
+          onPress={handleShareApp}
+        />
 
         <View className="h-px bg-border" />
 
-        <TouchableOpacity className="flex-row items-center justify-between py-4">
-          <Text className="text-base text-text">About</Text>
+        <SettingsItem
+          title="Hakkında"
+          description="Uygulama hakkında bilgi"
+          icon="information-circle-outline"
+          onPress={() => router.push("/about")}
+        />
 
-          <Ionicons name="chevron-forward" size={18} color="#7A7A7A" />
-        </TouchableOpacity>
+        <View className="h-px bg-border" />
+
+        <SettingsItem
+          title="Sürüm"
+          icon="code-slash-outline"
+          value={appVersion}
+        />
       </AppCard>
 
-      <View className="mt-8">
-        <AppLink title="Back to Profile" onPress={() => router.back()} />
-      </View>
+      <Text className="mb-3 mt-8 text-lg font-bold text-text">Hesap</Text>
+
+      <AppCard>
+        <SettingsItem
+          title="Çıkış Yap"
+          description="Hesabından güvenli şekilde çık"
+          icon="log-out-outline"
+          onPress={() => setShowLogoutDialog(true)}
+          danger
+        />
+      </AppCard>
+
+      <ConfirmDialog
+        visible={showLogoutDialog}
+        title="Çıkış Yap"
+        description="Hesabından çıkmak istediğine emin misin?"
+        confirmText="Çıkış Yap"
+        cancelText="Vazgeç"
+        variant="danger"
+        loading={isLoggingOut}
+        onCancel={() => setShowLogoutDialog(false)}
+        onConfirm={handleConfirmLogout}
+      />
     </AppScreen>
   );
 }

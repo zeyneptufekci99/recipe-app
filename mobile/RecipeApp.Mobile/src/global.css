@@ -3,11 +3,51 @@
 @tailwind utilities;
 
 :root {
+  --color-background: 255 248 240;
+  --color-surface: 255 255 255;
+
+  --color-primary: 232 93 4;
+  --color-primary-dark: 194 65 12;
+  --color-secondary: 250 163 7;
+
+  --color-text: 43 43 43;
+  --color-muted: 122 122 122;
+
+  --color-border: 232 222 210;
+
+  --color-success: 47 158 68;
+  --color-danger: 217 72 15;
+  --color-favorite: 224 49 49;
+
   --font-display:
-    Spline Sans, Inter, ui-sans-serif, system-ui, sans-serif, Apple Color Emoji, Segoe UI Emoji,
-    Segoe UI Symbol, Noto Color Emoji;
+    Spline Sans, Inter, ui-sans-serif, system-ui, sans-serif,
+    Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
+
   --font-mono:
-    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
-  --font-rounded: 'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif;
-  --font-serif: Georgia, 'Times New Roman', serif;
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    Liberation Mono, Courier New, monospace;
+
+  --font-rounded:
+    "SF Pro Rounded", "Hiragino Maru Gothic ProN", Meiryo,
+    "MS PGothic", sans-serif;
+
+  --font-serif: Georgia, "Times New Roman", serif;
+}
+
+.dark {
+  --color-background: 18 18 18;
+  --color-surface: 28 28 28;
+
+  --color-primary: 255 140 66;
+  --color-primary-dark: 249 115 22;
+  --color-secondary: 253 186 116;
+
+  --color-text: 245 245 245;
+  --color-muted: 163 163 163;
+
+  --color-border: 58 58 58;
+
+  --color-success: 74 222 128;
+  --color-danger: 251 113 133;
+  --color-favorite: 251 113 133;
 }

@@ -1,9 +1,9 @@
-import { AppButton, AppInput, AppScreen } from "@/components";
+import { AppButton, AppInput, AppScreen, PageHeader } from "@/components";
 import { useImportRecipeFromUrlMutation } from "@/features/recipe/api";
 import { toastService } from "@/services/toast-service";
 import { router } from "expo-router";
 import { useState } from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import { View } from "react-native";
 
 export default function ImportRecipeScreen() {
   const [url, setUrl] = useState("");
@@ -12,7 +12,9 @@ export default function ImportRecipeScreen() {
 
   const handleImport = async () => {
     try {
-      const recipe = await importRecipe({ url }).unwrap();
+      const recipe = await importRecipe({
+        url: url.trim(),
+      }).unwrap();
 
       router.push({
         pathname: "/recipe/create",
@@ -22,31 +24,28 @@ export default function ImportRecipeScreen() {
       });
     } catch (error) {
       console.log("Import recipe error:", error);
-      toastService.error("Import failed", "Recipe could not be imported.");
+
+      toastService.error("İçe aktarma başarısız", "Tarif URL'den alınamadı.");
     }
   };
 
   return (
     <AppScreen>
-      <View className="mb-6 flex-row items-center justify-between">
-        <Text className="text-3xl font-bold text-text">Import Recipe</Text>
-
-        <TouchableOpacity onPress={() => router.back()}>
-          <Text className="font-semibold text-primary">Kapat</Text>
-        </TouchableOpacity>
-      </View>
+      <PageHeader title="URL'den Tarif Aktar" />
 
       <View className="gap-5">
         <AppInput
-          label="Recipe URL"
+          label="Tarif URL'si"
           placeholder="https://..."
           value={url}
           onChangeText={setUrl}
           autoCapitalize="none"
+          autoCorrect={false}
+          keyboardType="url"
         />
 
         <AppButton
-          title={isLoading ? "Importing..." : "Import"}
+          title={isLoading ? "Aktarılıyor..." : "Tarifi Aktar"}
           onPress={handleImport}
           disabled={isLoading || !url.trim()}
         />

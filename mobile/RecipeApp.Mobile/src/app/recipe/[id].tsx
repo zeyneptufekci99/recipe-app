@@ -1,4 +1,4 @@
-import { AppButton } from "@/components";
+import { AppButton, ConfirmDialog } from "@/components";
 import {
   useDeleteRecipeMutation,
   useDuplicateRecipeMutation,
@@ -10,15 +10,17 @@ import { InstructionList } from "@/features/recipe/components/instruciton-list";
 import { RecipeDetailHeader } from "@/features/recipe/components/recipe-detail-header";
 import { toastService } from "@/services/toast-service";
 import { router, useLocalSearchParams } from "expo-router";
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { useState } from "react";
+import { ScrollView, Text, View } from "react-native";
 
 export default function RecipeDetailScreen() {
-  const [deleteRecipe, { isLoading: isDeleting }] = useDeleteRecipeMutation();
-
   const { id } = useLocalSearchParams<{ id: string }>();
+
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const { data, isLoading, error } = useGetRecipeByIdQuery(id);
   const [toggleFavorite] = useToggleFavoriteMutation();
+  const [deleteRecipe, { isLoading: isDeleting }] = useDeleteRecipeMutation();
   const [duplicateRecipe, { isLoading: isDuplicating }] =
     useDuplicateRecipeMutation();
 
@@ -32,32 +34,50 @@ export default function RecipeDetailScreen() {
 
         <View className="gap-5 p-5">
           <View className="h-8 w-2/3 rounded-full bg-border" />
-
           <View className="h-4 w-1/3 rounded-full bg-border" />
-
           <View className="mt-4 h-24 rounded-2xl bg-border" />
-
           <View className="h-32 rounded-2xl bg-border" />
-
           <View className="h-40 rounded-2xl bg-border" />
         </View>
       </ScrollView>
     );
   }
-  if (error || !data) return <Text>Recipe not found</Text>;
 
-  const handleDelete = async () => {
+  if (error || !data) {
+    return (
+      <View className="flex-1 items-center justify-center bg-background px-6">
+        <Text className="text-center text-lg font-semibold text-danger">
+          Tarif bulunamadı.
+        </Text>
+
+        <AppButton
+          title="Ana Sayfaya Dön"
+          onPress={() => router.replace("/(tabs)/home")}
+          variant="outline"
+        />
+      </View>
+    );
+  }
+
+  const handleConfirmDelete = async () => {
     try {
-      console.log("Delete started:", data.id);
-
       await deleteRecipe(data.id).unwrap();
 
-      console.log("Delete success");
+      setShowDeleteDialog(false);
+
+      toastService.success(
+        "Tarif silindi",
+        "Tarif koleksiyonundan kaldırıldı.",
+      );
 
       router.replace("/(tabs)/home");
-      toastService.success("Recipe deleted", "Recipe removed successfully.");
     } catch (error) {
       console.log("Delete recipe error:", error);
+
+      toastService.error(
+        "Silme başarısız",
+        "Tarif silinemedi. Lütfen tekrar deneyin.",
+      );
     }
   };
 
@@ -65,52 +85,73 @@ export default function RecipeDetailScreen() {
     try {
       const duplicated = await duplicateRecipe(data.id).unwrap();
 
-      toastService.success("Tarif kopyalandı", "Yeni kopya oluşturuldu.");
+      toastService.success(
+        "Tarif kopyalandı",
+        "Yeni bir tarif kopyası oluşturuldu.",
+      );
 
       router.push(`/recipe/${duplicated.id}`);
     } catch (error) {
       console.log("Duplicate recipe error:", error);
+
       toastService.error("İşlem başarısız", "Tarif kopyalanamadı.");
     }
   };
 
   return (
-    <ScrollView
-      className="flex-1 bg-background"
-      contentContainerClassName="p-4 pb-10"
-      showsVerticalScrollIndicator={false}
-    >
-      <Text className="text-3xl font-bold text-text">{data.title}</Text>
-      <Text className="mt-2 text-muted">{data.category}</Text>
-      <RecipeDetailHeader
-        recipe={data}
-        onFavoritePress={() => toggleFavorite(data.id)}
-      />
-      <TouchableOpacity
-        onPress={() => router.push(`/recipe/edit/${data.id}`)}
-        className="mt-4 rounded-xl bg-primary py-3"
+    <>
+      <ScrollView
+        className="flex-1 bg-background"
+        contentContainerClassName="p-4 pb-10"
+        showsVerticalScrollIndicator={false}
       >
-        <Text className="text-center font-bold text-white">Düzenle</Text>
-      </TouchableOpacity>
-      <AppButton
-        title={isDuplicating ? "Kopyalanıyor..." : "Tarifi Kopyala"}
-        onPress={handleDuplicate}
-        disabled={isDuplicating}
-        variant="outline"
+        <Text className="text-3xl font-bold text-text">{data.title}</Text>
+        <Text className="mt-2 text-muted">{data.category}</Text>
+
+        <RecipeDetailHeader
+          recipe={data}
+          onFavoritePress={() => toggleFavorite(data.id)}
+        />
+
+        <View className="mt-4 gap-3">
+          <AppButton
+            title="Düzenle"
+            onPress={() => router.push(`/recipe/edit/${data.id}`)}
+          />
+
+          <AppButton
+            title={isDuplicating ? "Kopyalanıyor..." : "Tarifi Kopyala"}
+            onPress={handleDuplicate}
+            disabled={isDuplicating}
+            variant="outline"
+          />
+        </View>
+
+        <IngredientList ingredients={data.ingredients} />
+
+        <InstructionList steps={data.steps} />
+
+        <View className="mt-6">
+          <AppButton
+            title="Tarifi Sil"
+            onPress={() => setShowDeleteDialog(true)}
+            disabled={isDeleting}
+            variant="danger"
+          />
+        </View>
+      </ScrollView>
+
+      <ConfirmDialog
+        visible={showDeleteDialog}
+        title="Tarifi Sil"
+        description="Bu tarif kalıcı olarak silinecek. Bu işlem geri alınamaz."
+        confirmText="Tarifi Sil"
+        cancelText="Vazgeç"
+        variant="danger"
+        loading={isDeleting}
+        onCancel={() => setShowDeleteDialog(false)}
+        onConfirm={handleConfirmDelete}
       />
-      <IngredientList ingredients={data.ingredients} />
-
-      <InstructionList steps={data.steps} />
-
-      <TouchableOpacity
-        onPress={handleDelete}
-        disabled={isDeleting}
-        className="mt-6 rounded-xl bg-red-500 py-4"
-      >
-        <Text className="text-center font-bold text-white">
-          {isDeleting ? "Siliniyor..." : "Tarifi Sil"}
-        </Text>
-      </TouchableOpacity>
-    </ScrollView>
+    </>
   );
 }

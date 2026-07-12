@@ -18,4 +18,12 @@ export const shareService = {
       message,
     });
   },
+
+  async shareApp() {
+    await Share.share({
+      title: "RecipeApp",
+      message:
+        "Tariflerini kaydetmek, düzenlemek ve favorilerini yönetmek için RecipeApp'i keşfet.",
+    });
+  },
 };

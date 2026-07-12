@@ -1,25 +1,26 @@
-/** @type {import('tailwindcss').Config} */
+/** @type {import("tailwindcss").Config} */
 module.exports = {
+  darkMode: "class",
   content: ["./src/**/*.{js,jsx,ts,tsx}"],
   presets: [require("nativewind/preset")],
   theme: {
     extend: {
       colors: {
-        background: "#FFF8F0",
-        surface: "#FFFFFF",
+        background: "rgb(var(--color-background) / <alpha-value>)",
+        surface: "rgb(var(--color-surface) / <alpha-value>)",
 
-        primary: "#E85D04",
-        primaryDark: "#C2410C",
-        secondary: "#FAA307",
+        primary: "rgb(var(--color-primary) / <alpha-value>)",
+        primaryDark: "rgb(var(--color-primary-dark) / <alpha-value>)",
+        secondary: "rgb(var(--color-secondary) / <alpha-value>)",
 
-        text: "#2B2B2B",
-        muted: "#7A7A7A",
+        text: "rgb(var(--color-text) / <alpha-value>)",
+        muted: "rgb(var(--color-muted) / <alpha-value>)",
 
-        border: "#E8DED2",
+        border: "rgb(var(--color-border) / <alpha-value>)",
 
-        success: "#2F9E44",
-        danger: "#D9480F",
-        favorite: "#E03131",
+        success: "rgb(var(--color-success) / <alpha-value>)",
+        danger: "rgb(var(--color-danger) / <alpha-value>)",
+        favorite: "rgb(var(--color-favorite) / <alpha-value>)",
       },
     },
   },
