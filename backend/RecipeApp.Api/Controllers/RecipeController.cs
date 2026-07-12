@@ -132,4 +132,13 @@ public class RecipeController : BaseController
 
         return Ok(result);
     }
+
+
+    [HttpGet("statistics")]
+    public async Task<IActionResult> GetStatistics()
+    {
+        var result = await _recipeService.GetStatisticsAsync(CurrentUserId);
+
+        return Ok(result);
+    }
 }

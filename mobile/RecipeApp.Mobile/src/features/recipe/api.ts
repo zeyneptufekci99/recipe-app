@@ -5,6 +5,7 @@ import type {
   ImportedRecipe,
   ImportRecipeFromUrlRequest,
   PagedResult,
+  ProfileStatistics,
   RecipeDetail,
   RecipeListItem,
 } from "@/types/recipe";
@@ -127,6 +128,10 @@ export const recipeApi = baseApi.injectEndpoints({
         body,
       }),
     }),
+    getRecipeStatistics: builder.query<ProfileStatistics, void>({
+      query: () => "/Recipe/statistics",
+      providesTags: ["Recipe"],
+    }),
   }),
 });
 
@@ -141,4 +146,5 @@ export const {
   useDuplicateRecipeMutation,
   useImportRecipeFromUrlMutation,
   useLazyGetRecipesQuery,
+  useGetRecipeStatisticsQuery,
 } = recipeApi;

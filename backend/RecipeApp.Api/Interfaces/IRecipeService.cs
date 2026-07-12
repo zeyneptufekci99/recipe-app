@@ -25,5 +25,8 @@ public interface IRecipeService
     Task<RecipeDetailDto?> UpdateAsync(Guid id, UpdateRecipeDto dto, Guid userId);
 
     Task<RecipeResponseDto?> ToggleFavoriteAsync(Guid id, Guid userId);
+
     Task<RecipeDetailDto?> DuplicateAsync(Guid id, Guid userId);
+
+    Task<ProfileStatisticsDto> GetStatisticsAsync(Guid userId);
 }

@@ -11,6 +11,7 @@ import { LoadingSpinner } from "./ui/loading/loading-spinner";
 import { PageHeader } from "./ui/page-header/page-header";
 import { AppScreen } from "./ui/screen/app-screen";
 import { AppSection } from "./ui/section/app-section";
+import { StatCard } from "./ui/stat-card/stat-card";
 export {
   AppButton,
   AppCard,
@@ -25,4 +26,5 @@ export {
   LoadingSpinner,
   PageHeader,
   SearchInput,
+  StatCard,
 };

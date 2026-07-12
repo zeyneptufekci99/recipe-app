@@ -96,3 +96,11 @@ export type RecipeSort =
   | "title_asc"
   | "title_desc"
   | "favorites_first";
+
+export interface ProfileStatistics {
+  recipeCount: number;
+  favoriteCount: number;
+  importedRecipeCount: number;
+  manualRecipeCount: number;
+  mostUsedCategory: string;
+}

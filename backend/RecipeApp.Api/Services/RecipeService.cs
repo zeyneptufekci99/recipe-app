@@ -5,6 +5,7 @@ using RecipeApp.Api.Data;
 using RecipeApp.Api.DTOs;
 using RecipeApp.Api.Interfaces;
 using RecipeApp.Api.Models;
+using RecipeApp.Api.Models.Enums;
 
 namespace RecipeApp.Api.Services;
 
@@ -232,5 +233,43 @@ public class RecipeService : IRecipeService
         await _context.SaveChangesAsync();
 
         return await GetByIdAsync(duplicatedRecipe.Id, userId);
+    }
+
+    public async Task<ProfileStatisticsDto> GetStatisticsAsync(Guid userId)
+    {
+        var query = _context.Recipes
+            .AsNoTracking()
+            .Where(r => r.UserId == userId);
+
+        var recipeCount = await query.CountAsync();
+
+        var favoriteCount = await query
+            .CountAsync(r => r.IsFavorite);
+
+        var importedRecipeCount = await query
+            .CountAsync(r => r.SourceType != SourceType.Manual);
+
+        var manualRecipeCount = await query
+            .CountAsync(r => r.SourceType == SourceType.Manual);
+
+        var mostUsedCategory = await query
+            .GroupBy(r => r.Category.Name)
+            .Select(group => new
+            {
+                Category = group.Key,
+                Count = group.Count()
+            })
+            .OrderByDescending(item => item.Count)
+            .Select(item => item.Category)
+            .FirstOrDefaultAsync();
+
+        return new ProfileStatisticsDto
+        {
+            RecipeCount = recipeCount,
+            FavoriteCount = favoriteCount,
+            ImportedRecipeCount = importedRecipeCount,
+            ManualRecipeCount = manualRecipeCount,
+            MostUsedCategory = mostUsedCategory
+        };
     }
 }
