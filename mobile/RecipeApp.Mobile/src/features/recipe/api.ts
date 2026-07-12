@@ -1,6 +1,7 @@
 import { baseApi } from "@/services/base-api";
 import type {
   CreateRecipeRequest,
+  GenerateRecipeWithAiRequest,
   GetRecipesParams,
   ImportedRecipe,
   ImportRecipeFromUrlRequest,
@@ -132,6 +133,16 @@ export const recipeApi = baseApi.injectEndpoints({
       query: () => "/Recipe/statistics",
       providesTags: ["Recipe"],
     }),
+    generateRecipeWithAi: builder.mutation<
+      ImportedRecipe,
+      GenerateRecipeWithAiRequest
+    >({
+      query: (body) => ({
+        url: "/Recipe/generate-ai",
+        method: "POST",
+        body,
+      }),
+    }),
   }),
 });
 
@@ -147,4 +158,5 @@ export const {
   useImportRecipeFromUrlMutation,
   useLazyGetRecipesQuery,
   useGetRecipeStatisticsQuery,
+  useGenerateRecipeWithAiMutation,
 } = recipeApi;

@@ -12,13 +12,16 @@ public class RecipeController : BaseController
 {
     private readonly IRecipeService _recipeService;
     private readonly IRecipeImportService _recipeImportService;
+    private readonly IAiRecipeService _aiRecipeService;
 
     public RecipeController(
-       IRecipeService recipeService,
-       IRecipeImportService recipeImportService)
+     IRecipeService recipeService,
+     IRecipeImportService recipeImportService,
+     IAiRecipeService aiRecipeService)
     {
         _recipeService = recipeService;
         _recipeImportService = recipeImportService;
+        _aiRecipeService = aiRecipeService;
     }
 
     [HttpPost]
@@ -140,5 +143,45 @@ public class RecipeController : BaseController
         var result = await _recipeService.GetStatisticsAsync(CurrentUserId);
 
         return Ok(result);
+    }
+
+    /// <summary>
+    /// Generates recipe form data from a natural-language prompt using AI.
+    /// </summary>
+    /// <param name="dto">User's recipe description or request.</param>
+    /// <param name="cancellationToken">Request cancellation token.</param>
+    /// <returns>Generated recipe data that can be reviewed before saving.</returns>
+    [HttpPost("generate-ai")]
+    public async Task<IActionResult> GenerateWithAi(
+        GenerateRecipeWithAiDto dto,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(dto.Prompt))
+            return BadRequest("Tarif açıklaması zorunludur.");
+
+        try
+        {
+            var result = await _aiRecipeService.GenerateRecipeAsync(
+                dto.Prompt,
+                cancellationToken
+            );
+
+            return Ok(result);
+        }
+        catch (ArgumentException exception)
+        {
+            return BadRequest(exception.Message);
+        }
+        catch (InvalidOperationException exception)
+        {
+            return StatusCode(
+                StatusCodes.Status502BadGateway,
+                new
+                {
+                    message = "AI servisi tarif oluşturamadı.",
+                    detail = exception.Message
+                }
+            );
+        }
     }
 }

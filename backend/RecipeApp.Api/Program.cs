@@ -9,6 +9,8 @@ using RecipeApp.Api.Interfaces;
 using RecipeApp.Api.Middleware;
 using RecipeApp.Api.Services;
 using RecipeApp.Api.Validators;
+using RecipeApp.Api.Data.Configurations;
+using RecipeApp.Api.Options;
 using System.Reflection;
 using System.Text;
 
@@ -81,6 +83,12 @@ builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<CreateRecipeDtoValidator>();
 
 builder.Services.AddAutoMapper(typeof(Program));
+
+builder.Services.Configure<GeminiOptions>(
+    builder.Configuration.GetSection(GeminiOptions.SectionName)
+);
+
+builder.Services.AddHttpClient<IAiRecipeService, GeminiRecipeService>();
 
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 

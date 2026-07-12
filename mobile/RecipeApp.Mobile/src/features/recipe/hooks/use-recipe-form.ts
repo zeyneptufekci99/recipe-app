@@ -124,10 +124,15 @@ export function useRecipeForm({
         uploadedImageUrl = await uploadService.uploadImage(imageUri);
       }
 
+      const fallbackImageUrl = "/images/recipe-placeholder.jpg";
+
+      const finalImageUrl =
+        uploadedImageUrl || recipe?.imageUrl || imageUri || fallbackImageUrl;
+
       const body = {
         title: values.title,
         description: values.description,
-        imageUrl: uploadedImageUrl || recipe?.imageUrl || imageUri || "",
+        imageUrl: finalImageUrl,
         prepTime: Number(values.prepTime) || 0,
         cookTime: Number(values.cookTime) || 0,
         servings: Number(values.servings) || 1,

@@ -9,6 +9,7 @@ import { AppInput } from "./ui/input/app-input";
 import { SearchInput } from "./ui/input/search-input";
 import { LoadingSpinner } from "./ui/loading/loading-spinner";
 import { PageHeader } from "./ui/page-header/page-header";
+import { PromptChip } from "./ui/prompt-chip/promp-chip";
 import { AppScreen } from "./ui/screen/app-screen";
 import { AppSection } from "./ui/section/app-section";
 import { StatCard } from "./ui/stat-card/stat-card";
@@ -25,6 +26,7 @@ export {
   ImagePicker,
   LoadingSpinner,
   PageHeader,
+  PromptChip,
   SearchInput,
   StatCard,
 };

@@ -63,7 +63,11 @@ export default function HomeScreen() {
         variant="outline"
         onPress={() => router.push("/import-recipe")}
       />
-
+      <AppButton
+        title="AI ile Tarif Oluştur"
+        variant="outline"
+        onPress={() => router.push("/generate-recipe")}
+      />
       <CategoryList
         categories={categories ?? []}
         selectedCategoryId={selectedCategoryId}

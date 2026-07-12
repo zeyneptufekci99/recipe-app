@@ -104,3 +104,6 @@ export interface ProfileStatistics {
   manualRecipeCount: number;
   mostUsedCategory: string;
 }
+export interface GenerateRecipeWithAiRequest {
+  prompt: string;
+}
