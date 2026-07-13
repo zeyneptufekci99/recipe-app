@@ -22,4 +22,9 @@ public class AppDbContext : DbContext
 
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
     }
+
+    public DbSet<ShoppingList> ShoppingLists => Set<ShoppingList>();
+
+    public DbSet<ShoppingListItem> ShoppingListItems =>
+        Set<ShoppingListItem>();
 }

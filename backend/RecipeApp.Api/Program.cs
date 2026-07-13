@@ -73,7 +73,10 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IRecipeService, RecipeService>();
-
+builder.Services.AddScoped<
+    IShoppingListService,
+    ShoppingListService
+>();
 builder.Services.AddHttpClient<IRecipeImportService, RecipeImportService>();
 
 builder.Services.AddHttpClient();

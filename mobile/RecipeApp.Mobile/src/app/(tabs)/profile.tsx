@@ -59,6 +59,30 @@ export default function ProfileScreen() {
           <Ionicons name="chevron-forward" size={20} color="#7A7A7A" />
         </TouchableOpacity>
 
+        <TouchableOpacity
+          onPress={() => router.push("/shopping-lists")}
+          activeOpacity={0.8}
+          className="mt-3 flex-row items-center justify-between rounded-2xl border border-border bg-surface p-5"
+        >
+          <View className="flex-row items-center gap-3">
+            <View className="h-10 w-10 items-center justify-center rounded-xl bg-background">
+              <Ionicons name="cart-outline" size={22} color="#7A7A7A" />
+            </View>
+
+            <View>
+              <Text className="text-base font-semibold text-text">
+                Alışveriş Listeleri
+              </Text>
+
+              <Text className="mt-1 text-sm text-muted">
+                Tarif malzemelerini yönet
+              </Text>
+            </View>
+          </View>
+
+          <Ionicons name="chevron-forward" size={20} color="#7A7A7A" />
+        </TouchableOpacity>
+
         <Text className="mb-3 mt-8 text-lg font-bold text-text">
           Statistics
         </Text>

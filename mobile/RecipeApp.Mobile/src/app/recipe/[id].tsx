@@ -8,6 +8,7 @@ import {
 import { IngredientList } from "@/features/recipe/components/ingredient-list";
 import { InstructionList } from "@/features/recipe/components/instruciton-list";
 import { RecipeDetailHeader } from "@/features/recipe/components/recipe-detail-header";
+import { AddToShoppingListModal } from "@/features/shopping-list/components/add-to-shopping-list-modal";
 import { toastService } from "@/services/toast-service";
 import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
@@ -15,7 +16,7 @@ import { ScrollView, Text, View } from "react-native";
 
 export default function RecipeDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-
+  const [showShoppingListModal, setShowShoppingListModal] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const { data, isLoading, error } = useGetRecipeByIdQuery(id);
@@ -125,6 +126,12 @@ export default function RecipeDetailScreen() {
             disabled={isDuplicating}
             variant="outline"
           />
+
+          <AppButton
+            title="Alışveriş Listesine Ekle"
+            onPress={() => setShowShoppingListModal(true)}
+            variant="outline"
+          />
         </View>
 
         <IngredientList ingredients={data.ingredients} />
@@ -151,6 +158,11 @@ export default function RecipeDetailScreen() {
         loading={isDeleting}
         onCancel={() => setShowDeleteDialog(false)}
         onConfirm={handleConfirmDelete}
+      />
+      <AddToShoppingListModal
+        visible={showShoppingListModal}
+        recipeId={data.id}
+        onClose={() => setShowShoppingListModal(false)}
       />
     </>
   );
