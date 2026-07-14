@@ -19,4 +19,10 @@ public interface IMealPlanService
 		Guid id,
 		Guid userId
 	);
+
+    Task<GeneratedWeeklyMealPlanDto> GenerateWeeklyPlanAsync(
+    GenerateWeeklyMealPlanDto dto,
+    Guid userId,
+    CancellationToken cancellationToken = default
+);
 }

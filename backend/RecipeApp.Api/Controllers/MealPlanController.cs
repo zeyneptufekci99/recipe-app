@@ -59,4 +59,50 @@ public class MealPlanController : BaseController
 
         return NoContent();
     }
+
+    [HttpPost("generate-week")]
+    public async Task<IActionResult> GenerateWeek(
+    GenerateWeeklyMealPlanDto dto,
+    CancellationToken cancellationToken)
+    {
+        if (dto.StartDate == default)
+        {
+            return BadRequest("Başlangıç tarihi zorunludur.");
+        }
+
+        if (string.IsNullOrWhiteSpace(dto.Preference))
+        {
+            dto.Preference =
+                "Dengeli, çeşitli ve pratik bir haftalık plan oluştur.";
+        }
+
+        try
+        {
+            var result = await _mealPlanService.GenerateWeeklyPlanAsync(
+                dto,
+                CurrentUserId,
+                cancellationToken
+            );
+
+            return Ok(result);
+        }
+        catch (ArgumentException exception)
+        {
+            return BadRequest(new
+            {
+                message = exception.Message
+            });
+        }
+        catch (InvalidOperationException exception)
+        {
+            return StatusCode(
+                StatusCodes.Status422UnprocessableEntity,
+                new
+                {
+                    message = "Haftalık plan oluşturulamadı.",
+                    detail = exception.Message
+                }
+            );
+        }
+    }
 }

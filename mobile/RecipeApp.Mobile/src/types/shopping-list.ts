@@ -22,3 +22,9 @@ export interface ShoppingListDetail {
 export interface CreateShoppingListRequest {
   name: string;
 }
+
+export interface CreateShoppingListFromMealPlanRequest {
+  name: string;
+  startDate: string;
+  endDate: string;
+}

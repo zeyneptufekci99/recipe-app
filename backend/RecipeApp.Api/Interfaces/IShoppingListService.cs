@@ -9,6 +9,11 @@ public interface IShoppingListService
         Guid userId
     );
 
+    Task<ShoppingListResponseDto> CreateFromMealPlanAsync(
+        CreateShoppingListFromMealPlanDto dto,
+        Guid userId
+    );
+
     Task<List<ShoppingListResponseDto>> GetAllAsync(Guid userId);
 
     Task<ShoppingListDetailDto?> GetByIdAsync(

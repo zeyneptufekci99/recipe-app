@@ -33,6 +33,29 @@ public class ShoppingListController : BaseController
         return Ok(result);
     }
 
+    [HttpPost("from-meal-plan")]
+    public async Task<IActionResult> CreateFromMealPlan(
+        CreateShoppingListFromMealPlanDto dto)
+    {
+        if (string.IsNullOrWhiteSpace(dto.Name))
+            return BadRequest("Liste adı zorunludur.");
+
+        if (dto.StartDate == default || dto.EndDate == default)
+        {
+            return BadRequest(
+                "Başlangıç ve bitiş tarihleri zorunludur."
+            );
+        }
+
+        var result =
+            await _shoppingListService.CreateFromMealPlanAsync(
+                dto,
+                CurrentUserId
+            );
+
+        return Ok(result);
+    }
+
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {

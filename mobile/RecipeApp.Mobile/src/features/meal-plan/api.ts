@@ -3,6 +3,10 @@ import type {
   CreateMealPlanItemRequest,
   MealPlanItem,
 } from "@/types/meal-plan";
+import {
+  CreateShoppingListFromMealPlanRequest,
+  ShoppingListSummary,
+} from "@/types/shopping-list";
 
 export const mealPlanApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -39,6 +43,17 @@ export const mealPlanApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["MealPlan"],
     }),
+    createShoppingListFromMealPlan: builder.mutation<
+      ShoppingListSummary,
+      CreateShoppingListFromMealPlanRequest
+    >({
+      query: (body) => ({
+        url: "/ShoppingList/from-meal-plan",
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["ShoppingList"],
+    }),
   }),
 });
 
@@ -46,4 +61,5 @@ export const {
   useGetMealPlanQuery,
   useCreateMealPlanItemMutation,
   useDeleteMealPlanItemMutation,
+  useCreateShoppingListFromMealPlanMutation,
 } = mealPlanApi;

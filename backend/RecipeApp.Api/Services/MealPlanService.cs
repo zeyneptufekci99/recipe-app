@@ -3,16 +3,21 @@ using RecipeApp.Api.Data;
 using RecipeApp.Api.DTOs;
 using RecipeApp.Api.Interfaces;
 using RecipeApp.Api.Models;
+using RecipeApp.Api.Models.Enums;
 
 namespace RecipeApp.Api.Services;
 
 public class MealPlanService : IMealPlanService
 {
     private readonly AppDbContext _context;
+    private readonly IAiRecipeService _aiRecipeService;
 
-    public MealPlanService(AppDbContext context)
+    public MealPlanService(
+        AppDbContext context,
+        IAiRecipeService aiRecipeService)
     {
         _context = context;
+        _aiRecipeService = aiRecipeService;
     }
 
     public async Task<MealPlanItemResponseDto?> CreateAsync(
@@ -114,6 +119,105 @@ public class MealPlanService : IMealPlanService
         return true;
     }
 
+    public async Task<GeneratedWeeklyMealPlanDto> GenerateWeeklyPlanAsync(
+    GenerateWeeklyMealPlanDto dto,
+    Guid userId,
+    CancellationToken cancellationToken = default)
+    {
+        var startDate = dto.StartDate;
+        var endDate = startDate.AddDays(6);
+
+        var enabledMealTypes = GetEnabledMealTypes(dto);
+
+        if (enabledMealTypes.Count == 0)
+        {
+            throw new ArgumentException(
+                "En az bir öğün türü seçmelisiniz."
+            );
+        }
+
+        var recipes = await _context.Recipes
+            .AsNoTracking()
+            .Where(recipe => recipe.UserId == userId)
+            .Select(recipe => new RecipeAiOptionDto
+            {
+                Id = recipe.Id,
+                Title = recipe.Title,
+                Category = recipe.Category.Name,
+                PrepTime = recipe.PrepTime,
+                CookTime = recipe.CookTime,
+                Servings = recipe.Servings,
+                Difficulty = (int)recipe.Difficulty
+            })
+            .ToListAsync(cancellationToken);
+
+        if (recipes.Count == 0)
+        {
+            throw new InvalidOperationException(
+                "AI planı oluşturmak için kayıtlı tarif bulunamadı."
+            );
+        }
+
+        var generatedItems =
+            await _aiRecipeService.GenerateWeeklyMealPlanAsync(
+                dto,
+                recipes,
+                cancellationToken
+            );
+
+        if (generatedItems.Count == 0)
+        {
+            throw new InvalidOperationException(
+                "AI geçerli bir haftalık plan oluşturamadı."
+            );
+        }
+
+        var validRecipeIds = recipes
+            .Select(recipe => recipe.Id)
+            .ToHashSet();
+
+        var existingItems = await _context.MealPlanItems
+            .Where(item =>
+                item.UserId == userId &&
+                item.Date >= startDate &&
+                item.Date <= endDate)
+            .ToListAsync(cancellationToken);
+
+        _context.MealPlanItems.RemoveRange(existingItems);
+
+        foreach (var generatedItem in generatedItems)
+        {
+            if (!validRecipeIds.Contains(generatedItem.RecipeId))
+                continue;
+
+            if (!enabledMealTypes.Contains(generatedItem.MealType))
+                continue;
+
+            _context.MealPlanItems.Add(new MealPlanItem
+            {
+                UserId = userId,
+                RecipeId = generatedItem.RecipeId,
+                Date = generatedItem.Date,
+                MealType = generatedItem.MealType
+            });
+        }
+
+        await _context.SaveChangesAsync(cancellationToken);
+
+        var savedItems = await GetByDateRangeAsync(
+            userId,
+            startDate,
+            endDate
+        );
+
+        return new GeneratedWeeklyMealPlanDto
+        {
+            StartDate = startDate,
+            EndDate = endDate,
+            Items = savedItems
+        };
+    }
+
     private static MealPlanItemResponseDto Map(
         MealPlanItem item)
     {
@@ -126,5 +230,25 @@ public class MealPlanService : IMealPlanService
             Date = item.Date,
             MealType = item.MealType
         };
+    }
+
+    private static HashSet<MealType> GetEnabledMealTypes(
+    GenerateWeeklyMealPlanDto dto)
+    {
+        var mealTypes = new HashSet<MealType>();
+
+        if (dto.IncludeBreakfast)
+            mealTypes.Add(MealType.Breakfast);
+
+        if (dto.IncludeLunch)
+            mealTypes.Add(MealType.Lunch);
+
+        if (dto.IncludeDinner)
+            mealTypes.Add(MealType.Dinner);
+
+        if (dto.IncludeSnack)
+            mealTypes.Add(MealType.Snack);
+
+        return mealTypes;
     }
 }
