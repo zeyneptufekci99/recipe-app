@@ -235,4 +235,54 @@ public class RecipeController : BaseController
             );
         }
     }
+    [HttpPost("{id}/ask-ai")]
+    public async Task<IActionResult> AskAi(
+    Guid id,
+    AskRecipeAssistantDto dto,
+    CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(dto.Question))
+        {
+            return BadRequest("Soru zorunludur.");
+        }
+
+        var recipe = await _recipeService.GetByIdAsync(
+            id,
+            CurrentUserId
+        );
+
+        if (recipe == null)
+        {
+            return NotFound("Tarif bulunamadı.");
+        }
+
+        try
+        {
+            var result = await _aiRecipeService.AskRecipeAssistantAsync(
+                recipe,
+                dto.Question,
+                cancellationToken
+            );
+
+            return Ok(result);
+        }
+        catch (ArgumentException exception)
+        {
+            return BadRequest(new
+            {
+                message = exception.Message
+            });
+        }
+        catch (InvalidOperationException exception)
+        {
+            return StatusCode(
+                StatusCodes.Status502BadGateway,
+                new
+                {
+                    message = "AI asistanı cevap veremedi.",
+                    detail = exception.Message
+                }
+            );
+        }
+    }
 }

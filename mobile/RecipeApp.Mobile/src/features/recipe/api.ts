@@ -1,5 +1,6 @@
 import { baseApi } from "@/services/base-api";
 import type {
+  AskRecipeAssistantRequest,
   CreateRecipeRequest,
   GenerateRecipeWithAiRequest,
   GetRecipesParams,
@@ -7,6 +8,7 @@ import type {
   ImportRecipeFromUrlRequest,
   PagedResult,
   ProfileStatistics,
+  RecipeAssistantResponse,
   RecipeDetail,
   RecipeListItem,
 } from "@/types/recipe";
@@ -143,6 +145,19 @@ export const recipeApi = baseApi.injectEndpoints({
         body,
       }),
     }),
+    askRecipeAssistant: builder.mutation<
+      RecipeAssistantResponse,
+      {
+        recipeId: string;
+        body: AskRecipeAssistantRequest;
+      }
+    >({
+      query: ({ recipeId, body }) => ({
+        url: `/Recipe/${recipeId}/ask-ai`,
+        method: "POST",
+        body,
+      }),
+    }),
   }),
 });
 
@@ -159,4 +174,5 @@ export const {
   useLazyGetRecipesQuery,
   useGetRecipeStatisticsQuery,
   useGenerateRecipeWithAiMutation,
+  useAskRecipeAssistantMutation,
 } = recipeApi;

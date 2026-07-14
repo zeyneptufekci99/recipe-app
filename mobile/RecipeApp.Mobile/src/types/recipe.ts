@@ -110,3 +110,10 @@ export interface GenerateRecipeWithAiRequest {
 export interface TransformRecipeWithAiRequest {
   instruction: string;
 }
+export interface AskRecipeAssistantRequest {
+  question: string;
+}
+
+export interface RecipeAssistantResponse {
+  answer: string;
+}

@@ -18,7 +18,11 @@ public interface IAiRecipeService
     Task<ImportedRecipeDto> TransformRecipeAsync(
     RecipeDetailDto recipe,
     string instruction,
-    CancellationToken cancellationToken = default
-);
+    CancellationToken cancellationToken = default);
+
+    Task<RecipeAssistantResponseDto> AskRecipeAssistantAsync(
+    RecipeDetailDto recipe,
+    string question,
+    CancellationToken cancellationToken = default);
 
 }

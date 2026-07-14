@@ -310,6 +310,59 @@ public class GeminiRecipeService : IAiRecipeService
         return generatedJson;
     }
 
+    public async Task<RecipeAssistantResponseDto> AskRecipeAssistantAsync(
+    RecipeDetailDto recipe,
+    string question,
+    CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(question))
+        {
+            throw new ArgumentException(
+                "Soru zorunludur.",
+                nameof(question)
+            );
+        }
+
+        ValidateConfiguration();
+
+        var requestBody = new
+        {
+            contents = new[]
+            {
+            new
+            {
+                role = "user",
+                parts = new[]
+                {
+                    new
+                    {
+                        text = BuildRecipeAssistantPrompt(
+                            recipe,
+                            question
+                        )
+                    }
+                }
+            }
+        },
+            generationConfig = new
+            {
+                temperature = 0.4
+            }
+        };
+
+        var answer = await SendGenerateContentRequestAsync(
+            requestBody,
+            "Gemini tarif asistanı isteği başarısız oldu.",
+            "Gemini geçerli bir cevap üretmedi.",
+            cancellationToken
+        );
+
+        return new RecipeAssistantResponseDto
+        {
+            Answer = answer.Trim()
+        };
+    }
+
     private void ValidateConfiguration()
     {
         if (string.IsNullOrWhiteSpace(_options.ApiKey))
@@ -772,5 +825,52 @@ public class GeminiRecipeService : IAiRecipeService
     private sealed class GeminiPart
     {
         public string? Text { get; set; }
+    }
+    private static string BuildRecipeAssistantPrompt(
+    RecipeDetailDto recipe,
+    string question)
+    {
+        var ingredients = recipe.Ingredients
+            .Select(ingredient =>
+                $"- {ingredient.Name}: {ingredient.Amount}"
+            );
+
+        var steps = recipe.Steps
+            .OrderBy(step => step.StepNumber)
+            .Select(step =>
+                $"{step.StepNumber}. {step.Description}"
+            );
+
+        return $"""
+        Sen Cooksy uygulamasındaki yardımcı bir yemek asistanısın.
+
+        Kullanıcı aşağıdaki tarif hakkında bir soru soruyor.
+
+        Tarif:
+        Başlık: {recipe.Title}
+        Açıklama: {recipe.Description}
+        Hazırlık süresi: {recipe.PrepTime} dakika
+        Pişirme süresi: {recipe.CookTime} dakika
+        Porsiyon: {recipe.Servings}
+
+        Malzemeler:
+        {string.Join("\n", ingredients)}
+
+        Yapılış adımları:
+        {string.Join("\n", steps)}
+
+        Kullanıcı sorusu:
+        {question.Trim()}
+
+        Kurallar:
+        - Türkçe cevap ver.
+        - Cevap kısa, açık ve uygulanabilir olsun.
+        - Tarifte olmayan bir bilgiyi kesinmiş gibi söyleme.
+        - Malzeme alternatifi veriyorsan miktarı yaklaşık olarak belirt.
+        - Gıda güvenliğiyle ilgili risk varsa açıkça uyar.
+        - Kullanıcı tarifi değiştirmek istiyorsa nasıl değiştirebileceğini açıkla,
+          ancak tarifi otomatik olarak yeniden yazma.
+        - Sağlık veya alerji konusunda kesin tıbbi iddialarda bulunma.
+        """;
     }
 }
