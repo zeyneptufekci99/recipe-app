@@ -6,6 +6,7 @@ import {
   LoadingSpinner,
   PageHeader,
 } from "@/components";
+import { AiPlannerWizard } from "@/features/meal-plan/components/ai-planner-wizard";
 import { CreateShoppingListModal } from "@/features/meal-plan/components/create-shopping-list-modal";
 import { DaySelector } from "@/features/meal-plan/components/day-selector";
 import { MealCard } from "@/features/meal-plan/components/meal-card";
@@ -20,7 +21,7 @@ import { ScrollView, Text, View } from "react-native";
 
 export default function MealPlannerScreen() {
   const [showShoppingListModal, setShowShoppingListModal] = useState(false);
-
+  const [showAiPlanner, setShowAiPlanner] = useState(false);
   const {
     weekStart,
     weekEnd,
@@ -67,7 +68,12 @@ export default function MealPlannerScreen() {
         onSelect={setSelectedDate}
       />
 
-      <View className="mt-4">
+      <View className="mt-4 gap-3">
+        <AppButton
+          title="AI ile Haftalık Plan Oluştur"
+          onPress={() => setShowAiPlanner(true)}
+        />
+
         <AppButton
           title="Bu Haftadan Alışveriş Listesi Oluştur"
           variant="outline"
@@ -153,6 +159,11 @@ export default function MealPlannerScreen() {
         loading={isDeleting}
         onCancel={() => setItemToDelete(null)}
         onConfirm={confirmDelete}
+      />
+
+      <AiPlannerWizard
+        visible={showAiPlanner}
+        onClose={() => setShowAiPlanner(false)}
       />
     </AppScreen>
   );
