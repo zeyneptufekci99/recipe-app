@@ -5,6 +5,7 @@ import {
   useGetRecipeByIdQuery,
   useToggleFavoriteMutation,
 } from "@/features/recipe/api";
+import { AiTransformRecipeModal } from "@/features/recipe/components/ai-transform-recipe-modal";
 import { IngredientList } from "@/features/recipe/components/ingredient-list";
 import { InstructionList } from "@/features/recipe/components/instruciton-list";
 import { RecipeDetailHeader } from "@/features/recipe/components/recipe-detail-header";
@@ -18,6 +19,7 @@ export default function RecipeDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [showShoppingListModal, setShowShoppingListModal] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showAiTransformModal, setShowAiTransformModal] = useState(false);
 
   const { data, isLoading, error } = useGetRecipeByIdQuery(id);
   const [toggleFavorite] = useToggleFavoriteMutation();
@@ -132,6 +134,11 @@ export default function RecipeDetailScreen() {
             onPress={() => setShowShoppingListModal(true)}
             variant="outline"
           />
+          <AppButton
+            title="AI ile Düzenle"
+            onPress={() => setShowAiTransformModal(true)}
+            variant="outline"
+          />
         </View>
 
         <IngredientList ingredients={data.ingredients} />
@@ -163,6 +170,11 @@ export default function RecipeDetailScreen() {
         visible={showShoppingListModal}
         recipeId={data.id}
         onClose={() => setShowShoppingListModal(false)}
+      />
+      <AiTransformRecipeModal
+        visible={showAiTransformModal}
+        recipeId={data.id}
+        onClose={() => setShowAiTransformModal(false)}
       />
     </>
   );

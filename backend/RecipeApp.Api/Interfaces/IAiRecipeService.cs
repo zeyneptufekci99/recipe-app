@@ -14,4 +14,11 @@ public interface IAiRecipeService
         IReadOnlyCollection<RecipeAiOptionDto> recipes,
         CancellationToken cancellationToken = default
     );
+
+    Task<ImportedRecipeDto> TransformRecipeAsync(
+    RecipeDetailDto recipe,
+    string instruction,
+    CancellationToken cancellationToken = default
+);
+
 }

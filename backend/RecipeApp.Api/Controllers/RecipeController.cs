@@ -184,4 +184,55 @@ public class RecipeController : BaseController
             );
         }
     }
+
+    [HttpPost("{id}/transform-ai")]
+    public async Task<IActionResult> TransformWithAi(
+    Guid id,
+    TransformRecipeWithAiDto dto,
+    CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(dto.Instruction))
+        {
+            return BadRequest(
+                "Tarif düzenleme talebi zorunludur."
+            );
+        }
+
+        var recipe = await _recipeService.GetByIdAsync(
+            id,
+            CurrentUserId
+        );
+
+        if (recipe == null)
+            return NotFound("Tarif bulunamadı.");
+
+        try
+        {
+            var result = await _aiRecipeService.TransformRecipeAsync(
+                recipe,
+                dto.Instruction,
+                cancellationToken
+            );
+
+            return Ok(result);
+        }
+        catch (ArgumentException exception)
+        {
+            return BadRequest(new
+            {
+                message = exception.Message
+            });
+        }
+        catch (InvalidOperationException exception)
+        {
+            return StatusCode(
+                StatusCodes.Status502BadGateway,
+                new
+                {
+                    message = "Tarif AI ile düzenlenemedi.",
+                    detail = exception.Message
+                }
+            );
+        }
+    }
 }

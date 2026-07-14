@@ -107,3 +107,6 @@ export interface ProfileStatistics {
 export interface GenerateRecipeWithAiRequest {
   prompt: string;
 }
+export interface TransformRecipeWithAiRequest {
+  instruction: string;
+}

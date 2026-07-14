@@ -29,4 +29,5 @@ public interface IRecipeService
     Task<RecipeDetailDto?> DuplicateAsync(Guid id, Guid userId);
 
     Task<ProfileStatisticsDto> GetStatisticsAsync(Guid userId);
+
 }

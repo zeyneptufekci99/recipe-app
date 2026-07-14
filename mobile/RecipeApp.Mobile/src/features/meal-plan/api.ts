@@ -3,6 +3,7 @@ import type {
   CreateMealPlanItemRequest,
   MealPlanItem,
 } from "@/types/meal-plan";
+import { ImportedRecipe, TransformRecipeWithAiRequest } from "@/types/recipe";
 import {
   CreateShoppingListFromMealPlanRequest,
   ShoppingListSummary,
@@ -54,6 +55,19 @@ export const mealPlanApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["ShoppingList"],
     }),
+    transformRecipeWithAi: builder.mutation<
+      ImportedRecipe,
+      {
+        recipeId: string;
+        body: TransformRecipeWithAiRequest;
+      }
+    >({
+      query: ({ recipeId, body }) => ({
+        url: `/Recipe/${recipeId}/transform-ai`,
+        method: "POST",
+        body,
+      }),
+    }),
   }),
 });
 
@@ -62,4 +76,5 @@ export const {
   useCreateMealPlanItemMutation,
   useDeleteMealPlanItemMutation,
   useCreateShoppingListFromMealPlanMutation,
+  useTransformRecipeWithAiMutation,
 } = mealPlanApi;
