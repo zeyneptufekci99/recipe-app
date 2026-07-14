@@ -178,7 +178,7 @@ export function AiPlannerWizard({
               ) : null}
 
               {currentStep === 8 ? (
-                <NotesStep value={values.notes} onChange={setNotes} />
+                <SummaryStep values={values} onNotesChange={setNotes} />
               ) : null}
             </ScrollView>
 
@@ -567,30 +567,114 @@ function AllergiesStep({
   );
 }
 
-function NotesStep({
-  value,
-  onChange,
+function SummaryStep({
+  values,
+  onNotesChange,
 }: {
-  value: string;
-  onChange: (value: string) => void;
+  values: AiPlannerFormValues;
+  onNotesChange: (value: string) => void;
 }) {
+  const goalLabel =
+    AI_PLANNER_GOALS.find((item) => item.value === values.goal)?.label ??
+    values.goal;
+
+  const budgetLabel =
+    AI_PLANNER_BUDGETS.find((item) => item.value === values.budget)?.label ??
+    values.budget;
+
+  const mealTypeLabels = AI_PLANNER_MEAL_TYPES.filter((item) =>
+    values.mealTypes.includes(item.value),
+  ).map((item) => item.label);
+
   return (
     <View>
       <StepHeader
-        title="Son bir notun var mı?"
-        description="Plan hazırlanırken dikkate alınmasını istediğin ayrıntıları yazabilirsin."
+        title="Planını kontrol et"
+        description="AI planı oluşturmadan önce seçimlerini son kez gözden geçir."
       />
 
-      <AppInput
-        label="Ek not"
-        value={value}
-        onChangeText={onChange}
-        placeholder="Örn. Hafta içi tarifler pratik, hafta sonu tarifleri daha özel olsun."
-        multiline
-        numberOfLines={6}
-        textAlignVertical="top"
-        className="min-h-40"
-      />
+      <View className="gap-3">
+        <SummaryItem icon="flag-outline" label="Hedef" value={goalLabel} />
+
+        <SummaryItem
+          icon="people-outline"
+          label="Kişi sayısı"
+          value={`${values.servings} kişilik`}
+        />
+
+        <SummaryItem
+          icon="calendar-outline"
+          label="Plan süresi"
+          value={`${values.days} gün`}
+        />
+
+        <SummaryItem
+          icon="restaurant-outline"
+          label="Öğünler"
+          value={mealTypeLabels.join(", ")}
+        />
+
+        <SummaryItem
+          icon="time-outline"
+          label="Maksimum hazırlama süresi"
+          value={`${values.maxPrepTime} dakika`}
+        />
+
+        <SummaryItem icon="wallet-outline" label="Bütçe" value={budgetLabel} />
+
+        <SummaryItem
+          icon="remove-circle-outline"
+          label="Hariç tutulan malzemeler"
+          value={
+            values.excludedIngredients.length
+              ? values.excludedIngredients.join(", ")
+              : "Yok"
+          }
+        />
+
+        <SummaryItem
+          icon="warning-outline"
+          label="Alerjiler"
+          value={values.allergies.length ? values.allergies.join(", ") : "Yok"}
+        />
+      </View>
+
+      <View className="mt-6">
+        <AppInput
+          label="Ek not"
+          value={values.notes}
+          onChangeText={onNotesChange}
+          placeholder="Örn. Hafta içi tarifler pratik, hafta sonu tarifleri daha özel olsun."
+          multiline
+          numberOfLines={5}
+          textAlignVertical="top"
+          className="min-h-32"
+        />
+      </View>
+    </View>
+  );
+}
+
+function SummaryItem({
+  icon,
+  label,
+  value,
+}: {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  value: string;
+}) {
+  return (
+    <View className="flex-row items-start rounded-2xl border border-border bg-background p-4">
+      <View className="h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+        <Ionicons name={icon} size={21} color="#E85D04" />
+      </View>
+
+      <View className="ml-3 flex-1">
+        <Text className="text-sm font-semibold text-muted">{label}</Text>
+
+        <Text className="mt-1 font-bold leading-5 text-text">{value}</Text>
+      </View>
     </View>
   );
 }
