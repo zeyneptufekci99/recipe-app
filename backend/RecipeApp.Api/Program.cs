@@ -78,7 +78,7 @@ builder.Services.AddScoped<
     ShoppingListService
 >();
 builder.Services.AddHttpClient<IRecipeImportService, RecipeImportService>();
-
+builder.Services.AddScoped<IMealPlanService, MealPlanService>();
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<IImageStorageService, ImageStorageService>();
 
