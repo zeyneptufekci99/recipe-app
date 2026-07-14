@@ -6,6 +6,7 @@ import {
   LoadingSpinner,
   PageHeader,
 } from "@/components";
+import { useGenerateWeeklyMealPlanMutation } from "@/features/meal-plan/api";
 import { AiPlannerWizard } from "@/features/meal-plan/components/ai-planner-wizard";
 import { CreateShoppingListModal } from "@/features/meal-plan/components/create-shopping-list-modal";
 import { DaySelector } from "@/features/meal-plan/components/day-selector";
@@ -16,12 +17,22 @@ import { WeekSelector } from "@/features/meal-plan/components/week-selector";
 import { MEAL_TYPES } from "@/features/meal-plan/constants";
 import { useMealPlan } from "@/features/meal-plan/hooks/use-meal-plan";
 import dayjs from "@/lib/dayjs";
+import { toastService } from "@/services/toast-service";
+import { AiPlannerFormValues } from "@/types/ai-planner";
 import { useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 
 export default function MealPlannerScreen() {
   const [showShoppingListModal, setShowShoppingListModal] = useState(false);
   const [showAiPlanner, setShowAiPlanner] = useState(false);
+  const [pendingPlannerValues, setPendingPlannerValues] =
+    useState<AiPlannerFormValues | null>(null);
+  const [generateWeeklyPlan, { isLoading: isGeneratingPlan }] =
+    useGenerateWeeklyMealPlanMutation();
+  const handleRequestAiPlan = (values: AiPlannerFormValues) => {
+    setPendingPlannerValues(values);
+  };
+
   const {
     weekStart,
     weekEnd,
@@ -49,6 +60,40 @@ export default function MealPlannerScreen() {
     saveMeal,
     confirmDelete,
   } = useMealPlan();
+
+  const handleConfirmAiPlan = async () => {
+    if (!pendingPlannerValues) return;
+
+    try {
+      await generateWeeklyPlan({
+        startDate: weekStart.format("YYYY-MM-DD"),
+        days: pendingPlannerValues.days,
+        servings: pendingPlannerValues.servings,
+        goal: pendingPlannerValues.goal,
+        budget: pendingPlannerValues.budget,
+        maxPrepTime: pendingPlannerValues.maxPrepTime,
+        mealTypes: pendingPlannerValues.mealTypes,
+        excludedIngredients: pendingPlannerValues.excludedIngredients,
+        allergies: pendingPlannerValues.allergies,
+        notes: pendingPlannerValues.notes,
+      }).unwrap();
+
+      toastService.success(
+        "Haftalık plan oluşturuldu",
+        "AI seçimlerine uygun yemek planını hazırladı.",
+      );
+
+      setPendingPlannerValues(null);
+      setShowAiPlanner(false);
+    } catch (error) {
+      console.log("Generate weekly meal plan error:", error);
+
+      toastService.error(
+        "Plan oluşturulamadı",
+        "AI haftalık planı oluşturamadı. Lütfen tekrar dene.",
+      );
+    }
+  };
 
   return (
     <AppScreen>
@@ -163,7 +208,28 @@ export default function MealPlannerScreen() {
 
       <AiPlannerWizard
         visible={showAiPlanner}
-        onClose={() => setShowAiPlanner(false)}
+        isGenerating={isGeneratingPlan}
+        onClose={() => {
+          if (!isGeneratingPlan) {
+            setShowAiPlanner(false);
+          }
+        }}
+        onGenerate={handleRequestAiPlan}
+      />
+      <ConfirmDialog
+        visible={pendingPlannerValues !== null}
+        title="Yeni plan oluşturulsun mu?"
+        description="Seçilen tarih aralığındaki mevcut öğünler AI tarafından oluşturulan yeni planla değiştirilecek."
+        confirmText="Planı Oluştur"
+        cancelText="Vazgeç"
+        variant="primary"
+        loading={isGeneratingPlan}
+        onCancel={() => {
+          if (!isGeneratingPlan) {
+            setPendingPlannerValues(null);
+          }
+        }}
+        onConfirm={handleConfirmAiPlan}
       />
     </AppScreen>
   );

@@ -8,7 +8,6 @@ import {
   AI_PLANNER_PREP_TIMES,
 } from "@/features/meal-plan/constants/ai-planner";
 import { useAiPlanner } from "@/features/meal-plan/hooks/use-ai-planner";
-import { toastService } from "@/services/toast-service";
 import { cn } from "@/utils/cn";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
@@ -21,12 +20,21 @@ import {
   View,
 } from "react-native";
 
+import type { AiPlannerFormValues } from "@/types/ai-planner";
+
 interface AiPlannerWizardProps {
   visible: boolean;
+  isGenerating: boolean;
   onClose: () => void;
+  onGenerate: (values: AiPlannerFormValues) => void;
 }
 
-export function AiPlannerWizard({ visible, onClose }: AiPlannerWizardProps) {
+export function AiPlannerWizard({
+  visible,
+  isGenerating,
+  onClose,
+  onGenerate,
+}: AiPlannerWizardProps) {
   const [ingredientInput, setIngredientInput] = useState("");
 
   const {
@@ -55,25 +63,19 @@ export function AiPlannerWizard({ visible, onClose }: AiPlannerWizardProps) {
   } = useAiPlanner();
 
   const handleClose = () => {
+    if (isGenerating) return;
+
     setIngredientInput("");
     reset();
     onClose();
   };
-
   const handleAddIngredient = () => {
     addExcludedIngredient(ingredientInput);
     setIngredientInput("");
   };
 
   const handleFinish = () => {
-    console.log("AI planner values:", values);
-
-    toastService.info(
-      "Seçimler hazır",
-      "Bir sonraki adımda bu seçimleri AI servisine bağlayacağız.",
-    );
-
-    handleClose();
+    onGenerate(values);
   };
 
   return (
@@ -106,6 +108,7 @@ export function AiPlannerWizard({ visible, onClose }: AiPlannerWizardProps) {
               <IconButton
                 icon="close"
                 onPress={handleClose}
+                disabled={isGenerating}
                 accessibilityLabel="Plan oluşturma penceresini kapat"
               />
             </View>
@@ -182,15 +185,26 @@ export function AiPlannerWizard({ visible, onClose }: AiPlannerWizardProps) {
             <View className="flex-row gap-3 border-t border-border p-5">
               {!isFirstStep ? (
                 <View className="flex-1">
-                  <AppButton title="Geri" variant="outline" onPress={goBack} />
+                  <AppButton
+                    title="Geri"
+                    variant="outline"
+                    onPress={goBack}
+                    disabled={isGenerating}
+                  />
                 </View>
               ) : null}
 
               <View className="flex-1">
                 <AppButton
-                  title={isLastStep ? "Planı Hazırla" : "Devam Et"}
+                  title={
+                    isGenerating
+                      ? "Plan oluşturuluyor..."
+                      : isLastStep
+                        ? "Planı Oluştur"
+                        : "Devam Et"
+                  }
                   onPress={isLastStep ? handleFinish : goNext}
-                  disabled={!canContinue}
+                  disabled={!canContinue || isGenerating}
                 />
               </View>
             </View>

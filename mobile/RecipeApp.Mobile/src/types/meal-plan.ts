@@ -14,3 +14,23 @@ export interface CreateMealPlanItemRequest {
   date: string;
   mealType: MealType;
 }
+
+export interface GenerateWeeklyMealPlanRequest {
+  startDate: string;
+  days: 3 | 5 | 7;
+  servings: number;
+  goal: string;
+  budget: string;
+  maxPrepTime: number;
+  mealTypes: MealType[];
+  excludedIngredients: string[];
+  allergies: string[];
+  notes: string;
+}
+
+export interface GeneratedWeeklyMealPlan {
+  startDate: string;
+  endDate: string;
+  days: number;
+  items: MealPlanItem[];
+}

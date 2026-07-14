@@ -1,6 +1,8 @@
 import { baseApi } from "@/services/base-api";
 import type {
   CreateMealPlanItemRequest,
+  GeneratedWeeklyMealPlan,
+  GenerateWeeklyMealPlanRequest,
   MealPlanItem,
 } from "@/types/meal-plan";
 import { ImportedRecipe, TransformRecipeWithAiRequest } from "@/types/recipe";
@@ -68,6 +70,17 @@ export const mealPlanApi = baseApi.injectEndpoints({
         body,
       }),
     }),
+    generateWeeklyMealPlan: builder.mutation<
+      GeneratedWeeklyMealPlan,
+      GenerateWeeklyMealPlanRequest
+    >({
+      query: (body) => ({
+        url: "/MealPlan/generate-week",
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["MealPlan"],
+    }),
   }),
 });
 
@@ -77,4 +90,5 @@ export const {
   useDeleteMealPlanItemMutation,
   useCreateShoppingListFromMealPlanMutation,
   useTransformRecipeWithAiMutation,
+  useGenerateWeeklyMealPlanMutation,
 } = mealPlanApi;
