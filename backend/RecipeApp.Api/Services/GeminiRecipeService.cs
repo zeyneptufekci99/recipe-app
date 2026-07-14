@@ -3,8 +3,8 @@ using System.Text.Json;
 using Microsoft.Extensions.Options;
 using RecipeApp.Api.DTOs;
 using RecipeApp.Api.Interfaces;
-using RecipeApp.Api.Options;
 using RecipeApp.Api.Models.Enums;
+using RecipeApp.Api.Options;
 
 namespace RecipeApp.Api.Services;
 
@@ -32,24 +32,14 @@ public class GeminiRecipeService : IAiRecipeService
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(prompt))
+        {
             throw new ArgumentException(
                 "Tarif açıklaması zorunludur.",
                 nameof(prompt)
             );
+        }
 
-        if (string.IsNullOrWhiteSpace(_options.ApiKey))
-            throw new InvalidOperationException(
-                "Gemini API anahtarı yapılandırılmamış."
-            );
-
-        if (string.IsNullOrWhiteSpace(_options.Model))
-            throw new InvalidOperationException(
-                "Gemini model bilgisi yapılandırılmamış."
-            );
-
-        var endpoint =
-            $"https://generativelanguage.googleapis.com/v1beta/models/" +
-            $"{Uri.EscapeDataString(_options.Model)}:generateContent";
+        ValidateConfiguration();
 
         var requestBody = new
         {
@@ -75,51 +65,12 @@ public class GeminiRecipeService : IAiRecipeService
             }
         };
 
-        using var request = new HttpRequestMessage(
-            HttpMethod.Post,
-            endpoint
-        );
-
-        request.Headers.Add("x-goog-api-key", _options.ApiKey);
-        request.Content = JsonContent.Create(requestBody);
-
-        using var response = await _httpClient.SendAsync(
-            request,
+        var generatedJson = await SendGenerateContentRequestAsync(
+            requestBody,
+            "Gemini isteği başarısız oldu.",
+            "Gemini geçerli bir tarif yanıtı üretmedi.",
             cancellationToken
         );
-
-        var responseContent = await response.Content.ReadAsStringAsync(
-            cancellationToken
-        );
-
-        if (!response.IsSuccessStatusCode)
-        {
-            throw new InvalidOperationException(
-                $"Gemini isteği başarısız oldu. " +
-                $"Status: {(int)response.StatusCode}. " +
-                $"Response: {responseContent}"
-            );
-        }
-
-        var geminiResponse = JsonSerializer.Deserialize<GeminiResponse>(
-            responseContent,
-            _jsonOptions
-        );
-
-        var generatedJson = geminiResponse?
-            .Candidates?
-            .FirstOrDefault()?
-            .Content?
-            .Parts?
-            .FirstOrDefault()?
-            .Text;
-
-        if (string.IsNullOrWhiteSpace(generatedJson))
-        {
-            throw new InvalidOperationException(
-                "Gemini geçerli bir tarif yanıtı üretmedi."
-            );
-        }
 
         var recipe = JsonSerializer.Deserialize<ImportedRecipeDto>(
             generatedJson,
@@ -139,9 +90,9 @@ public class GeminiRecipeService : IAiRecipeService
     }
 
     public async Task<ImportedRecipeDto> TransformRecipeAsync(
-    RecipeDetailDto recipe,
-    string instruction,
-    CancellationToken cancellationToken = default)
+        RecipeDetailDto recipe,
+        string instruction,
+        CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(instruction))
         {
@@ -151,36 +102,27 @@ public class GeminiRecipeService : IAiRecipeService
             );
         }
 
-        if (string.IsNullOrWhiteSpace(_options.ApiKey))
-        {
-            throw new InvalidOperationException(
-                "Gemini API anahtarı yapılandırılmamış."
-            );
-        }
-
-        var endpoint =
-            $"https://generativelanguage.googleapis.com/v1beta/models/" +
-            $"{Uri.EscapeDataString(_options.Model)}:generateContent";
+        ValidateConfiguration();
 
         var requestBody = new
         {
             contents = new[]
             {
-            new
-            {
-                role = "user",
-                parts = new[]
+                new
                 {
-                    new
+                    role = "user",
+                    parts = new[]
                     {
-                        text = BuildTransformRecipePrompt(
-                            recipe,
-                            instruction
-                        )
+                        new
+                        {
+                            text = BuildTransformRecipePrompt(
+                                recipe,
+                                instruction
+                            )
+                        }
                     }
                 }
-            }
-        },
+            },
             generationConfig = new
             {
                 temperature = 0.3,
@@ -189,51 +131,12 @@ public class GeminiRecipeService : IAiRecipeService
             }
         };
 
-        using var request = new HttpRequestMessage(
-            HttpMethod.Post,
-            endpoint
-        );
-
-        request.Headers.Add("x-goog-api-key", _options.ApiKey);
-        request.Content = JsonContent.Create(requestBody);
-
-        using var response = await _httpClient.SendAsync(
-            request,
+        var generatedJson = await SendGenerateContentRequestAsync(
+            requestBody,
+            "Gemini tarif düzenleme isteği başarısız oldu.",
+            "Gemini düzenlenmiş tarif üretmedi.",
             cancellationToken
         );
-
-        var responseContent = await response.Content.ReadAsStringAsync(
-            cancellationToken
-        );
-
-        if (!response.IsSuccessStatusCode)
-        {
-            throw new InvalidOperationException(
-                $"Gemini tarif düzenleme isteği başarısız oldu. " +
-                $"Status: {(int)response.StatusCode}. " +
-                $"Response: {responseContent}"
-            );
-        }
-
-        var geminiResponse = JsonSerializer.Deserialize<GeminiResponse>(
-            responseContent,
-            _jsonOptions
-        );
-
-        var generatedJson = geminiResponse?
-            .Candidates?
-            .FirstOrDefault()?
-            .Content?
-            .Parts?
-            .FirstOrDefault()?
-            .Text;
-
-        if (string.IsNullOrWhiteSpace(generatedJson))
-        {
-            throw new InvalidOperationException(
-                "Gemini düzenlenmiş tarif üretmedi."
-            );
-        }
 
         var transformedRecipe =
             JsonSerializer.Deserialize<ImportedRecipeDto>(
@@ -257,9 +160,9 @@ public class GeminiRecipeService : IAiRecipeService
     }
 
     public async Task<List<AiMealPlanItemDto>> GenerateWeeklyMealPlanAsync(
-    GenerateWeeklyMealPlanDto dto,
-    IReadOnlyCollection<RecipeAiOptionDto> recipes,
-    CancellationToken cancellationToken = default)
+        GenerateWeeklyMealPlanDto dto,
+        IReadOnlyCollection<RecipeAiOptionDto> recipes,
+        CancellationToken cancellationToken = default)
     {
         if (recipes.Count == 0)
         {
@@ -268,33 +171,40 @@ public class GeminiRecipeService : IAiRecipeService
             );
         }
 
-        if (string.IsNullOrWhiteSpace(_options.ApiKey))
+        ValidateConfiguration();
+
+        var enabledMealTypes = dto.MealTypes
+            .Where(Enum.IsDefined)
+            .Distinct()
+            .ToHashSet();
+
+        if (enabledMealTypes.Count == 0)
         {
-            throw new InvalidOperationException(
-                "Gemini API anahtarı yapılandırılmamış."
+            throw new ArgumentException(
+                "En az bir geçerli öğün türü seçilmelidir.",
+                nameof(dto.MealTypes)
             );
         }
-
-        var endpoint =
-            $"https://generativelanguage.googleapis.com/v1beta/models/" +
-            $"{Uri.EscapeDataString(_options.Model)}:generateContent";
 
         var requestBody = new
         {
             contents = new[]
             {
-            new
-            {
-                role = "user",
-                parts = new[]
+                new
                 {
-                    new
+                    role = "user",
+                    parts = new[]
                     {
-                        text = BuildWeeklyMealPlanPrompt(dto, recipes)
+                        new
+                        {
+                            text = BuildWeeklyMealPlanPrompt(
+                                dto,
+                                recipes
+                            )
+                        }
                     }
                 }
-            }
-        },
+            },
             generationConfig = new
             {
                 temperature = 0.3,
@@ -302,6 +212,54 @@ public class GeminiRecipeService : IAiRecipeService
                 responseSchema = CreateWeeklyMealPlanSchema()
             }
         };
+
+        var generatedJson = await SendGenerateContentRequestAsync(
+            requestBody,
+            "Gemini haftalık plan isteği başarısız oldu.",
+            "Gemini geçerli bir haftalık plan üretmedi.",
+            cancellationToken
+        );
+
+        var generatedItems =
+            JsonSerializer.Deserialize<List<AiMealPlanItemDto>>(
+                generatedJson,
+                _jsonOptions
+            ) ?? [];
+
+        var validRecipeIds = recipes
+            .Select(recipe => recipe.Id)
+            .ToHashSet();
+
+        var days = Math.Clamp(dto.Days, 1, 7);
+        var endDate = dto.StartDate.AddDays(days - 1);
+
+        return generatedItems
+            .Where(item =>
+                validRecipeIds.Contains(item.RecipeId) &&
+                enabledMealTypes.Contains(item.MealType) &&
+                item.Date >= dto.StartDate &&
+                item.Date <= endDate
+            )
+            .GroupBy(item => new
+            {
+                item.Date,
+                item.MealType
+            })
+            .Select(group => group.First())
+            .OrderBy(item => item.Date)
+            .ThenBy(item => item.MealType)
+            .ToList();
+    }
+
+    private async Task<string> SendGenerateContentRequestAsync(
+        object requestBody,
+        string requestErrorMessage,
+        string emptyResponseMessage,
+        CancellationToken cancellationToken)
+    {
+        var endpoint =
+            "https://generativelanguage.googleapis.com/v1beta/models/" +
+            $"{Uri.EscapeDataString(_options.Model)}:generateContent";
 
         using var request = new HttpRequestMessage(
             HttpMethod.Post,
@@ -323,7 +281,7 @@ public class GeminiRecipeService : IAiRecipeService
         if (!response.IsSuccessStatusCode)
         {
             throw new InvalidOperationException(
-                $"Gemini haftalık plan isteği başarısız oldu. " +
+                $"{requestErrorMessage} " +
                 $"Status: {(int)response.StatusCode}. " +
                 $"Response: {responseContent}"
             );
@@ -345,37 +303,28 @@ public class GeminiRecipeService : IAiRecipeService
         if (string.IsNullOrWhiteSpace(generatedJson))
         {
             throw new InvalidOperationException(
-                "Gemini geçerli bir haftalık plan üretmedi."
+                emptyResponseMessage
             );
         }
 
-        var generatedItems =
-            JsonSerializer.Deserialize<List<AiMealPlanItemDto>>(
-                generatedJson,
-                _jsonOptions
-            ) ?? [];
+        return generatedJson;
+    }
 
-        var validRecipeIds = recipes
-            .Select(recipe => recipe.Id)
-            .ToHashSet();
+    private void ValidateConfiguration()
+    {
+        if (string.IsNullOrWhiteSpace(_options.ApiKey))
+        {
+            throw new InvalidOperationException(
+                "Gemini API anahtarı yapılandırılmamış."
+            );
+        }
 
-        var enabledMealTypes = GetEnabledMealTypes(dto);
-
-        return generatedItems
-            .Where(item =>
-                validRecipeIds.Contains(item.RecipeId) &&
-                enabledMealTypes.Contains(item.MealType) &&
-                item.Date >= dto.StartDate &&
-                item.Date <= dto.StartDate.AddDays(6))
-            .GroupBy(item => new
-            {
-                item.Date,
-                item.MealType
-            })
-            .Select(group => group.First())
-            .OrderBy(item => item.Date)
-            .ThenBy(item => item.MealType)
-            .ToList();
+        if (string.IsNullOrWhiteSpace(_options.Model))
+        {
+            throw new InvalidOperationException(
+                "Gemini model bilgisi yapılandırılmamış."
+            );
+        }
     }
 
     private static string BuildPrompt(string userPrompt)
@@ -397,6 +346,160 @@ public class GeminiRecipeService : IAiRecipeService
             - Yapılış adımları açık, sıralı ve uygulanabilir olsun.
             - StepNumber değerleri 1'den başlayarak ardışık ilerlesin.
             - Görsel URL'si üretme; imageUrl boş string olsun.
+            """;
+    }
+
+    private static string BuildWeeklyMealPlanPrompt(
+        GenerateWeeklyMealPlanDto dto,
+        IReadOnlyCollection<RecipeAiOptionDto> recipes)
+    {
+        var days = Math.Clamp(dto.Days, 1, 7);
+        var endDate = dto.StartDate.AddDays(days - 1);
+
+        var enabledMealTypes = dto.MealTypes
+            .Where(Enum.IsDefined)
+            .Distinct()
+            .ToList();
+
+        var mealTypes = enabledMealTypes.Select(type =>
+            $"{(int)type} = {GetMealTypeLabel(type)}"
+        );
+
+        var excludedIngredients =
+            dto.ExcludedIngredients.Count > 0
+                ? string.Join(", ", dto.ExcludedIngredients)
+                : "Yok";
+
+        var allergies =
+            dto.Allergies.Count > 0
+                ? string.Join(", ", dto.Allergies)
+                : "Yok";
+
+        var notes =
+            string.IsNullOrWhiteSpace(dto.Notes)
+                ? "Ek not yok."
+                : dto.Notes.Trim();
+
+        var recipeLines = recipes.Select(recipe =>
+            $"""
+            Id: {recipe.Id}
+            Başlık: {recipe.Title}
+            Kategori: {recipe.Category}
+            Hazırlık: {recipe.PrepTime} dakika
+            Pişirme: {recipe.CookTime} dakika
+            Porsiyon: {recipe.Servings}
+            Zorluk: {recipe.Difficulty}
+            """
+        );
+
+        return $"""
+            Kullanıcının mevcut tariflerinden kişisel bir yemek planı oluştur.
+
+            Başlangıç tarihi:
+            {dto.StartDate:yyyy-MM-dd}
+
+            Bitiş tarihi:
+            {endDate:yyyy-MM-dd}
+
+            Gün sayısı:
+            {days}
+
+            Hedef:
+            {GetGoalLabel(dto.Goal)}
+
+            Kişi sayısı:
+            {dto.Servings}
+
+            Bütçe:
+            {GetBudgetLabel(dto.Budget)}
+
+            Maksimum hazırlama süresi:
+            {dto.MaxPrepTime} dakika
+
+            Kullanılacak öğün türleri:
+            {string.Join(", ", mealTypes)}
+
+            Kullanıcının sevmediği malzemeler:
+            {excludedIngredients}
+
+            Alerjiler:
+            {allergies}
+
+            Ek notlar:
+            {notes}
+
+            Kullanılabilecek tarifler:
+            {string.Join("\n---\n", recipeLines)}
+
+            Kurallar:
+            - Yalnızca verilen tarif ID değerlerini kullan.
+            - Yeni tarif veya hayali ID üretme.
+            - Plan belirtilen tarih aralığında olsun.
+            - Her gün için yalnızca seçilmiş öğün türlerini kullan.
+            - Her gün ve öğün türü için yalnızca bir tarif seç.
+            - Kullanıcının hedefini, bütçesini ve süre sınırını dikkate al.
+            - Alerjen veya hariç tutulan malzeme içeren tarifleri seçme.
+            - Maksimum hazırlama süresini aşan tarifleri mümkünse seçme.
+            - Tarifleri mümkün olduğunca dengeli ve çeşitli dağıt.
+            - Aynı tarifi gereksiz yere art arda kullanma.
+            - Kişi sayısı tercihini planlama kararında dikkate al.
+            """;
+    }
+
+    private static string BuildTransformRecipePrompt(
+        RecipeDetailDto recipe,
+        string instruction)
+    {
+        var ingredients = recipe.Ingredients
+            .Select(ingredient =>
+                $"- {ingredient.Name}: {ingredient.Amount}"
+            );
+
+        var steps = recipe.Steps
+            .OrderBy(step => step.StepNumber)
+            .Select(step =>
+                $"{step.StepNumber}. {step.Description}"
+            );
+
+        return $"""
+            Aşağıdaki mevcut tarifi kullanıcının talebine göre düzenle.
+
+            Kullanıcı talebi:
+            {instruction.Trim()}
+
+            Mevcut tarif:
+
+            Başlık:
+            {recipe.Title}
+
+            Açıklama:
+            {recipe.Description}
+
+            Hazırlık süresi:
+            {recipe.PrepTime} dakika
+
+            Pişirme süresi:
+            {recipe.CookTime} dakika
+
+            Porsiyon:
+            {recipe.Servings}
+
+            Malzemeler:
+            {string.Join("\n", ingredients)}
+
+            Yapılış adımları:
+            {string.Join("\n", steps)}
+
+            Kurallar:
+            - Yanıt dili Türkçe olsun.
+            - Kullanıcının talebini eksiksiz uygula.
+            - Gereksiz değişiklik yapma.
+            - Malzeme miktarlarını yeni porsiyona göre hesapla.
+            - Malzeme adı ile miktarını ayrı alanlarda döndür.
+            - Adımları yeni tarife göre güncelle.
+            - StepNumber değerleri 1'den başlayarak ardışık olsun.
+            - imageUrl boş string olabilir; mevcut görsel backend tarafından
+              korunacak.
             """;
     }
 
@@ -456,7 +559,8 @@ public class GeminiRecipeService : IAiRecipeService
                             amount = new
                             {
                                 type = "string",
-                                description = "Malzemenin miktarı ve ölçü birimi."
+                                description =
+                                    "Malzemenin miktarı ve ölçü birimi."
                             }
                         },
                         required = new[]
@@ -483,7 +587,8 @@ public class GeminiRecipeService : IAiRecipeService
                             description = new
                             {
                                 type = "string",
-                                description = "Yapılış adımının açıklaması."
+                                description =
+                                    "Yapılış adımının açıklaması."
                             }
                         },
                         required = new[]
@@ -508,6 +613,49 @@ public class GeminiRecipeService : IAiRecipeService
         };
     }
 
+    private static object CreateWeeklyMealPlanSchema()
+    {
+        return new
+        {
+            type = "array",
+            items = new
+            {
+                type = "object",
+                properties = new
+                {
+                    date = new
+                    {
+                        type = "string",
+                        format = "date",
+                        description =
+                            "Öğün tarihi, YYYY-MM-DD formatında."
+                    },
+                    mealType = new
+                    {
+                        type = "integer",
+                        description =
+                            "Öğün türü: 1 kahvaltı, 2 öğle, " +
+                            "3 akşam, 4 atıştırmalık.",
+                        minimum = 1,
+                        maximum = 4
+                    },
+                    recipeId = new
+                    {
+                        type = "string",
+                        description =
+                            "Verilen tariflerden birinin GUID değeri."
+                    }
+                },
+                required = new[]
+                {
+                    "date",
+                    "mealType",
+                    "recipeId"
+                }
+            }
+        };
+    }
+
     private static void NormalizeRecipe(ImportedRecipeDto recipe)
     {
         recipe.Title = recipe.Title?.Trim() ?? string.Empty;
@@ -527,7 +675,8 @@ public class GeminiRecipeService : IAiRecipeService
             .Select(ingredient =>
             {
                 ingredient.Name = ingredient.Name.Trim();
-                ingredient.Amount = ingredient.Amount?.Trim() ?? string.Empty;
+                ingredient.Amount =
+                    ingredient.Amount?.Trim() ?? string.Empty;
 
                 return ingredient;
             })
@@ -567,6 +716,44 @@ public class GeminiRecipeService : IAiRecipeService
         }
     }
 
+    private static string GetMealTypeLabel(MealType mealType)
+    {
+        return mealType switch
+        {
+            MealType.Breakfast => "Kahvaltı",
+            MealType.Lunch => "Öğle Yemeği",
+            MealType.Dinner => "Akşam Yemeği",
+            MealType.Snack => "Ara Öğün",
+            _ => mealType.ToString()
+        };
+    }
+
+    private static string GetGoalLabel(string goal)
+    {
+        return goal switch
+        {
+            "lose_weight" => "Kilo vermek",
+            "gain_muscle" => "Kas yapmak",
+            "healthy" => "Sağlıklı beslenmek",
+            "gain_weight" => "Kilo almak",
+            "mediterranean" => "Akdeniz diyeti",
+            "vegetarian" => "Vejetaryen",
+            "vegan" => "Vegan",
+            _ => goal
+        };
+    }
+
+    private static string GetBudgetLabel(string budget)
+    {
+        return budget switch
+        {
+            "low" => "Düşük",
+            "medium" => "Orta",
+            "high" => "Yüksek",
+            _ => budget
+        };
+    }
+
     private sealed class GeminiResponse
     {
         public List<GeminiCandidate>? Candidates { get; set; }
@@ -585,170 +772,5 @@ public class GeminiRecipeService : IAiRecipeService
     private sealed class GeminiPart
     {
         public string? Text { get; set; }
-    }
-
-    private static string BuildWeeklyMealPlanPrompt(
-    GenerateWeeklyMealPlanDto dto,
-    IReadOnlyCollection<RecipeAiOptionDto> recipes)
-    {
-        var mealTypes = GetEnabledMealTypes(dto)
-            .Select(type => $"{(int)type} = {type}");
-
-        var recipeLines = recipes.Select(recipe =>
-            $"""
-        Id: {recipe.Id}
-        Başlık: {recipe.Title}
-        Kategori: {recipe.Category}
-        Hazırlık: {recipe.PrepTime} dakika
-        Pişirme: {recipe.CookTime} dakika
-        Porsiyon: {recipe.Servings}
-        Zorluk: {recipe.Difficulty}
-        """
-        );
-
-        return $"""
-        Kullanıcının mevcut tariflerinden 7 günlük bir yemek planı oluştur.
-
-        Başlangıç tarihi:
-        {dto.StartDate:yyyy-MM-dd}
-
-        Bitiş tarihi:
-        {dto.StartDate.AddDays(6):yyyy-MM-dd}
-
-        Kullanıcı tercihi:
-        {dto.Preference.Trim()}
-
-        Kullanılacak öğün türleri:
-        {string.Join(", ", mealTypes)}
-
-        Kullanılabilecek tarifler:
-        {string.Join("\n---\n", recipeLines)}
-
-        Kurallar:
-        - Yalnızca verilen tarif ID değerlerini kullan.
-        - Yeni tarif veya hayali ID üretme.
-        - Plan 7 günlük tarih aralığında olsun.
-        - Her gün için yalnızca seçili öğün türlerini kullan.
-        - Aynı gün ve aynı öğün türünde yalnızca bir tarif olsun.
-        - Tarifleri mümkün olduğunca dengeli ve çeşitli dağıt.
-        - Kullanıcının tercihine uygun seçim yap.
-        - Aynı tarifi gereksiz yere art arda kullanma.
-        """;
-    }
-
-    private static object CreateWeeklyMealPlanSchema()
-    {
-        return new
-        {
-            type = "array",
-            items = new
-            {
-                type = "object",
-                properties = new
-                {
-                    date = new
-                    {
-                        type = "string",
-                        format = "date",
-                        description = "Öğün tarihi, YYYY-MM-DD formatında."
-                    },
-                    mealType = new
-                    {
-                        type = "integer",
-                        description =
-                            "Öğün türü: 1 kahvaltı, 2 öğle, 3 akşam, 4 atıştırmalık.",
-                        minimum = 1,
-                        maximum = 4
-                    },
-                    recipeId = new
-                    {
-                        type = "string",
-                        description = "Verilen tariflerden birinin GUID değeri."
-                    }
-                },
-                required = new[]
-                {
-                "date",
-                "mealType",
-                "recipeId"
-            }
-            }
-        };
-    }
-
-    private static HashSet<MealType> GetEnabledMealTypes(
-        GenerateWeeklyMealPlanDto dto)
-    {
-        var mealTypes = new HashSet<MealType>();
-
-        if (dto.IncludeBreakfast)
-            mealTypes.Add(MealType.Breakfast);
-
-        if (dto.IncludeLunch)
-            mealTypes.Add(MealType.Lunch);
-
-        if (dto.IncludeDinner)
-            mealTypes.Add(MealType.Dinner);
-
-        if (dto.IncludeSnack)
-            mealTypes.Add(MealType.Snack);
-
-        return mealTypes;
-    }
-
-    private static string BuildTransformRecipePrompt(
-    RecipeDetailDto recipe,
-    string instruction)
-    {
-        var ingredients = recipe.Ingredients
-            .Select(ingredient =>
-                $"- {ingredient.Name}: {ingredient.Amount}"
-            );
-
-        var steps = recipe.Steps
-            .OrderBy(step => step.StepNumber)
-            .Select(step =>
-                $"{step.StepNumber}. {step.Description}"
-            );
-
-        return $"""
-        Aşağıdaki mevcut tarifi kullanıcının talebine göre düzenle.
-
-        Kullanıcı talebi:
-        {instruction.Trim()}
-
-        Mevcut tarif:
-
-        Başlık:
-        {recipe.Title}
-
-        Açıklama:
-        {recipe.Description}
-
-        Hazırlık süresi:
-        {recipe.PrepTime} dakika
-
-        Pişirme süresi:
-        {recipe.CookTime} dakika
-
-        Porsiyon:
-        {recipe.Servings}
-
-        Malzemeler:
-        {string.Join("\n", ingredients)}
-
-        Yapılış adımları:
-        {string.Join("\n", steps)}
-
-        Kurallar:
-        - Yanıt dili Türkçe olsun.
-        - Kullanıcının talebini eksiksiz uygula.
-        - Gereksiz değişiklik yapma.
-        - Malzeme miktarlarını yeni porsiyona göre hesapla.
-        - Malzeme adı ile miktarını ayrı alanlarda döndür.
-        - Adımları yeni tarife göre güncelle.
-        - StepNumber değerleri 1'den başlayarak ardışık olsun.
-        - imageUrl boş string olabilir; mevcut görsel backend tarafından korunacak.
-        """;
     }
 }

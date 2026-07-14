@@ -65,15 +65,32 @@ public class MealPlanController : BaseController
     GenerateWeeklyMealPlanDto dto,
     CancellationToken cancellationToken)
     {
+
         if (dto.StartDate == default)
         {
             return BadRequest("Başlangıç tarihi zorunludur.");
         }
 
-        if (string.IsNullOrWhiteSpace(dto.Preference))
+        if (dto.Days is not 3 and not 5 and not 7)
         {
-            dto.Preference =
-                "Dengeli, çeşitli ve pratik bir haftalık plan oluştur.";
+            return BadRequest("Plan süresi 3, 5 veya 7 gün olmalıdır.");
+        }
+
+        if (dto.Servings < 1 || dto.Servings > 10)
+        {
+            return BadRequest("Kişi sayısı 1 ile 10 arasında olmalıdır.");
+        }
+
+        if (dto.MealTypes.Count == 0)
+        {
+            return BadRequest("En az bir öğün türü seçilmelidir.");
+        }
+
+        if (dto.MaxPrepTime is not 15 and not 30 and not 45 and not 60)
+        {
+            return BadRequest(
+                "Hazırlama süresi 15, 30, 45 veya 60 dakika olmalıdır."
+            );
         }
 
         try

@@ -6,5 +6,7 @@ public class GeneratedWeeklyMealPlanDto
 
     public DateOnly EndDate { get; set; }
 
+    public int Days { get; set; }
+
     public List<MealPlanItemResponseDto> Items { get; set; } = [];
 }

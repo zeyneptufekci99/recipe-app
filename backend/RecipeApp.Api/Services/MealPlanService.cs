@@ -124,10 +124,15 @@ public class MealPlanService : IMealPlanService
     Guid userId,
     CancellationToken cancellationToken = default)
     {
-        var startDate = dto.StartDate;
-        var endDate = startDate.AddDays(6);
+        var days = Math.Clamp(dto.Days, 1, 7);
 
-        var enabledMealTypes = GetEnabledMealTypes(dto);
+        var startDate = dto.StartDate;
+        var endDate = startDate.AddDays(days - 1);
+
+        var enabledMealTypes = dto.MealTypes
+            .Where(mealType => Enum.IsDefined(mealType))
+            .Distinct()
+            .ToHashSet();
 
         if (enabledMealTypes.Count == 0)
         {
@@ -214,6 +219,7 @@ public class MealPlanService : IMealPlanService
         {
             StartDate = startDate,
             EndDate = endDate,
+            Days = days,
             Items = savedItems
         };
     }
@@ -232,23 +238,5 @@ public class MealPlanService : IMealPlanService
         };
     }
 
-    private static HashSet<MealType> GetEnabledMealTypes(
-    GenerateWeeklyMealPlanDto dto)
-    {
-        var mealTypes = new HashSet<MealType>();
 
-        if (dto.IncludeBreakfast)
-            mealTypes.Add(MealType.Breakfast);
-
-        if (dto.IncludeLunch)
-            mealTypes.Add(MealType.Lunch);
-
-        if (dto.IncludeDinner)
-            mealTypes.Add(MealType.Dinner);
-
-        if (dto.IncludeSnack)
-            mealTypes.Add(MealType.Snack);
-
-        return mealTypes;
-    }
 }
