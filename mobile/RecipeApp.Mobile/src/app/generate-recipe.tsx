@@ -7,6 +7,7 @@ import {
 } from "@/components";
 import { AI_PROMPTS } from "@/constants/ai-prompts";
 import { useGenerateRecipeWithAiMutation } from "@/features/recipe/api";
+import { PantryIngredientInput } from "@/features/recipe/components/pantry-ingredient-input";
 import { toastService } from "@/services/toast-service";
 import { router } from "expo-router";
 import { useState } from "react";
@@ -14,6 +15,7 @@ import { Text, View } from "react-native";
 
 export default function GenerateRecipeScreen() {
   const [prompt, setPrompt] = useState("");
+  const [pantryIngredients, setPantryIngredients] = useState<string[]>([]);
 
   const [generateRecipe, { isLoading }] = useGenerateRecipeWithAiMutation();
 
@@ -21,6 +23,7 @@ export default function GenerateRecipeScreen() {
     try {
       const recipe = await generateRecipe({
         prompt: prompt.trim(),
+        pantryIngredients,
       }).unwrap();
 
       router.push({
@@ -61,6 +64,12 @@ export default function GenerateRecipeScreen() {
               />
             ))}
           </View>
+
+          <PantryIngredientInput
+            ingredients={pantryIngredients}
+            onChange={setPantryIngredients}
+          />
+
           <AppInput
             value={prompt}
             onChangeText={setPrompt}

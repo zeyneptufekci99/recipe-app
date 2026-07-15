@@ -12,10 +12,12 @@ import { CreateShoppingListModal } from "@/features/meal-plan/components/create-
 import { DaySelector } from "@/features/meal-plan/components/day-selector";
 import { MealCard } from "@/features/meal-plan/components/meal-card";
 import { MealRecipePickerModal } from "@/features/meal-plan/components/meal-recipe-picker-modal";
+import { NutritionSummaryCard } from "@/features/meal-plan/components/nutrition-summary-card";
 import { WeekSelector } from "@/features/meal-plan/components/week-selector";
 
 import { MEAL_TYPES } from "@/features/meal-plan/constants";
 import { useMealPlan } from "@/features/meal-plan/hooks/use-meal-plan";
+import { useEstimateRecipeNutritionMutation } from "@/features/recipe/api";
 import dayjs from "@/lib/dayjs";
 import { toastService } from "@/services/toast-service";
 import { AiPlannerFormValues } from "@/types/ai-planner";
@@ -32,8 +34,14 @@ export default function MealPlannerScreen() {
   const handleRequestAiPlan = (values: AiPlannerFormValues) => {
     setPendingPlannerValues(values);
   };
+  const [estimatingRecipeId, setEstimatingRecipeId] = useState<string | null>(
+    null,
+  );
+
+  const [estimateNutrition] = useEstimateRecipeNutritionMutation();
 
   const {
+    mealPlan,
     weekStart,
     weekEnd,
     weekDays,
@@ -60,6 +68,8 @@ export default function MealPlannerScreen() {
     saveMeal,
     confirmDelete,
   } = useMealPlan();
+
+  console.log("mealPlan", mealPlan);
 
   const handleConfirmAiPlan = async () => {
     if (!pendingPlannerValues) return;
@@ -92,6 +102,28 @@ export default function MealPlannerScreen() {
         "Plan oluşturulamadı",
         "AI haftalık planı oluşturamadı. Lütfen tekrar dene.",
       );
+    }
+  };
+
+  const handleEstimateNutrition = async (recipeId: string) => {
+    try {
+      setEstimatingRecipeId(recipeId);
+
+      await estimateNutrition(recipeId).unwrap();
+
+      toastService.success(
+        "Besin değerleri hesaplandı",
+        "Günlük ve haftalık toplamlar güncellendi.",
+      );
+    } catch (error) {
+      console.log("Estimate meal nutrition error:", error);
+
+      toastService.error(
+        "Hesaplama başarısız",
+        "Bu tarifin besin değerleri şu anda hesaplanamadı.",
+      );
+    } finally {
+      setEstimatingRecipeId(null);
     }
   };
 
@@ -153,6 +185,14 @@ export default function MealPlannerScreen() {
                 key={mealType.value}
                 mealType={mealType}
                 item={item}
+                isEstimatingNutrition={
+                  item != null && estimatingRecipeId === item.recipeId
+                }
+                onEstimateNutrition={() => {
+                  if (item) {
+                    handleEstimateNutrition(item.recipeId);
+                  }
+                }}
                 onEdit={() => openMealPicker(mealType.value, item)}
                 onDelete={() => {
                   if (item) {
@@ -162,6 +202,18 @@ export default function MealPlannerScreen() {
               />
             );
           })}
+
+          <NutritionSummaryCard
+            title="Günün Tahmini Besin Değerleri"
+            items={selectedDayItems}
+          />
+
+          <NutritionSummaryCard
+            title="Haftalık Günlük Ortalama"
+            items={mealPlan}
+            mode="daily-average"
+            dayCount={weekDays.length}
+          />
 
           {isFetching && !isLoading ? (
             <View className="py-2">

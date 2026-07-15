@@ -81,7 +81,10 @@ builder.Services.AddHttpClient<IRecipeImportService, RecipeImportService>();
 builder.Services.AddScoped<IMealPlanService, MealPlanService>();
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<IImageStorageService, ImageStorageService>();
-
+builder.Services.AddScoped<
+    ICollectionService,
+    CollectionService
+>();
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<CreateRecipeDtoValidator>();
 

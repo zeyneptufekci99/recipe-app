@@ -27,5 +27,11 @@ public class AppDbContext : DbContext
 
     public DbSet<ShoppingListItem> ShoppingListItems =>
         Set<ShoppingListItem>();
+
     public DbSet<MealPlanItem> MealPlanItems => Set<MealPlanItem>();
+
+    public DbSet<Collection> Collections => Set<Collection>();
+
+    public DbSet<CollectionRecipe> CollectionRecipes =>
+        Set<CollectionRecipe>();
 }

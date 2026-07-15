@@ -6,6 +6,7 @@ public interface IAiRecipeService
 {
     Task<ImportedRecipeDto> GenerateRecipeAsync(
         string prompt,
+        IReadOnlyCollection<string> pantryIngredients,
         CancellationToken cancellationToken = default
     );
 
@@ -24,5 +25,12 @@ public interface IAiRecipeService
     RecipeDetailDto recipe,
     string question,
     CancellationToken cancellationToken = default);
+
+    Task<NutritionEstimateDto> EstimateNutritionAsync(
+    RecipeDetailDto recipe,
+    CancellationToken cancellationToken = default
+);
+
+
 
 }

@@ -15,4 +15,12 @@ public class MealPlanItemResponseDto
     public DateOnly Date { get; set; }
 
     public MealType MealType { get; set; }
+
+    public int? CaloriesPerServing { get; set; }
+
+    public decimal? ProteinGramsPerServing { get; set; }
+
+    public decimal? CarbohydrateGramsPerServing { get; set; }
+
+    public decimal? FatGramsPerServing { get; set; }
 }

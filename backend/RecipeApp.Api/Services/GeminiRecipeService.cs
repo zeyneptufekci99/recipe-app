@@ -28,8 +28,9 @@ public class GeminiRecipeService : IAiRecipeService
     }
 
     public async Task<ImportedRecipeDto> GenerateRecipeAsync(
-        string prompt,
-        CancellationToken cancellationToken = default)
+    string prompt,
+    IReadOnlyCollection<string> pantryIngredients,
+    CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(prompt))
         {
@@ -52,7 +53,7 @@ public class GeminiRecipeService : IAiRecipeService
                     {
                         new
                         {
-                            text = BuildPrompt(prompt)
+                            text = BuildPrompt(prompt, pantryIngredients)
                         }
                     }
                 }
@@ -162,7 +163,8 @@ public class GeminiRecipeService : IAiRecipeService
     public async Task<List<AiMealPlanItemDto>> GenerateWeeklyMealPlanAsync(
         GenerateWeeklyMealPlanDto dto,
         IReadOnlyCollection<RecipeAiOptionDto> recipes,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+        )
     {
         if (recipes.Count == 0)
         {
@@ -363,6 +365,89 @@ public class GeminiRecipeService : IAiRecipeService
         };
     }
 
+    public async Task<NutritionEstimateDto> EstimateNutritionAsync(
+    RecipeDetailDto recipe,
+    CancellationToken cancellationToken = default)
+    {
+        ValidateConfiguration();
+
+        if (recipe.Servings < 1)
+        {
+            throw new ArgumentException(
+                "Tarifin porsiyon sayısı geçerli olmalıdır.",
+                nameof(recipe)
+            );
+        }
+
+        if (recipe.Ingredients.Count == 0)
+        {
+            throw new ArgumentException(
+                "Besin değeri hesaplamak için tarifte malzeme bulunmalıdır.",
+                nameof(recipe)
+            );
+        }
+
+        var requestBody = new
+        {
+            contents = new[]
+            {
+            new
+            {
+                role = "user",
+                parts = new[]
+                {
+                    new
+                    {
+                        text = BuildNutritionEstimatePrompt(recipe)
+                    }
+                }
+            }
+        },
+            generationConfig = new
+            {
+                temperature = 0.1,
+                responseMimeType = "application/json",
+                responseSchema = CreateNutritionEstimateSchema()
+            }
+        };
+
+        var generatedJson = await SendGenerateContentRequestAsync(
+            requestBody,
+            "Gemini besin değeri isteği başarısız oldu.",
+            "Gemini geçerli besin değerleri üretmedi.",
+            cancellationToken
+        );
+
+        var nutrition = JsonSerializer.Deserialize<NutritionEstimateDto>(
+            generatedJson,
+            _jsonOptions
+        );
+
+        if (nutrition == null)
+        {
+            throw new InvalidOperationException(
+                "Besin değeri yanıtı okunamadı."
+            );
+        }
+
+        nutrition.CaloriesPerServing =
+            Math.Max(0, nutrition.CaloriesPerServing);
+
+        nutrition.ProteinGramsPerServing =
+            Math.Max(0, nutrition.ProteinGramsPerServing);
+
+        nutrition.CarbohydrateGramsPerServing =
+            Math.Max(0, nutrition.CarbohydrateGramsPerServing);
+
+        nutrition.FatGramsPerServing =
+            Math.Max(0, nutrition.FatGramsPerServing);
+
+        nutrition.IsEstimated = true;
+
+        return nutrition;
+    }
+
+
     private void ValidateConfiguration()
     {
         if (string.IsNullOrWhiteSpace(_options.ApiKey))
@@ -380,26 +465,44 @@ public class GeminiRecipeService : IAiRecipeService
         }
     }
 
-    private static string BuildPrompt(string userPrompt)
+    private static string BuildPrompt(
+        string userPrompt,
+        IReadOnlyCollection<string> pantryIngredients)
     {
+        var cleanedIngredients = pantryIngredients
+            .Where(ingredient => !string.IsNullOrWhiteSpace(ingredient))
+            .Select(ingredient => ingredient.Trim())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        var pantryText = cleanedIngredients.Count > 0
+            ? string.Join(", ", cleanedIngredients)
+            : "Kullanıcı belirli bir malzeme belirtmedi.";
+
         return $"""
-            Kullanıcının isteğine göre eksiksiz ve uygulanabilir bir yemek
-            tarifi oluştur.
+        Kullanıcının isteğine göre eksiksiz ve uygulanabilir bir yemek
+        tarifi oluştur.
 
-            Kullanıcı isteği:
-            {userPrompt.Trim()}
+        Kullanıcı isteği:
+        {userPrompt.Trim()}
 
-            Kurallar:
-            - Yanıt dili Türkçe olsun.
-            - Başlık kısa ve anlaşılır olsun.
-            - Açıklama en fazla 2-3 cümle olsun.
-            - Hazırlık ve pişirme süreleri dakika cinsinden tam sayı olsun.
-            - Porsiyon en az 1 olsun.
-            - Her malzemenin adı ve miktarı ayrı alanlarda yer alsın.
-            - Yapılış adımları açık, sıralı ve uygulanabilir olsun.
-            - StepNumber değerleri 1'den başlayarak ardışık ilerlesin.
-            - Görsel URL'si üretme; imageUrl boş string olsun.
-            """;
+        Kullanıcının evinde bulunan malzemeler:
+        {pantryText}
+
+        Kurallar:
+        - Yanıt dili Türkçe olsun.
+        - Başlık kısa ve anlaşılır olsun.
+        - Açıklama en fazla 2-3 cümle olsun.
+        - Hazırlık ve pişirme süreleri dakika cinsinden tam sayı olsun.
+        - Porsiyon en az 1 olsun.
+        - Kullanıcının evindeki malzemeleri mümkün olduğunca kullan.
+        - Gerekli olan ek temel malzemeleri ayrıca ekleyebilirsin.
+        - Evde bulunmayan malzemeleri gereksiz yere çoğaltma.
+        - Her malzemenin adı ve miktarı ayrı alanlarda yer alsın.
+        - Yapılış adımları açık, sıralı ve uygulanabilir olsun.
+        - StepNumber değerleri 1'den başlayarak ardışık ilerlesin.
+        - Görsel URL'si üretme; imageUrl boş string olsun.
+        """;
     }
 
     private static string BuildWeeklyMealPlanPrompt(
@@ -872,5 +975,90 @@ public class GeminiRecipeService : IAiRecipeService
           ancak tarifi otomatik olarak yeniden yazma.
         - Sağlık veya alerji konusunda kesin tıbbi iddialarda bulunma.
         """;
+    }
+
+    private static string BuildNutritionEstimatePrompt(
+    RecipeDetailDto recipe)
+    {
+        var ingredients = recipe.Ingredients
+            .Select(ingredient =>
+                $"- {ingredient.Name}: {ingredient.Amount}"
+            );
+
+        return $"""
+        Aşağıdaki tarifin yaklaşık besin değerlerini hesapla.
+
+        Tarif adı:
+        {recipe.Title}
+
+        Toplam porsiyon:
+        {recipe.Servings}
+
+        Malzemeler:
+        {string.Join("\n", ingredients)}
+
+        İstenen değerler porsiyon başına olmalıdır:
+        - Kalori, kcal cinsinden tam sayı
+        - Protein, gram cinsinden
+        - Karbonhidrat, gram cinsinden
+        - Yağ, gram cinsinden
+
+        Kurallar:
+        - Tüm malzemelerin toplam besin değerini yaklaşık hesapla.
+        - Toplam değerleri porsiyon sayısına böl.
+        - Negatif değer üretme.
+        - Kaloriyi tam sayı olarak döndür.
+        - Makro değerleri en fazla iki ondalık basamakla döndür.
+        - Marka veya kesin gramaj bilinmiyorsa yaygın ortalama değerleri kullan.
+        - Bu hesaplamanın tahmini olduğunu kabul et.
+        """;
+    }
+
+    private static object CreateNutritionEstimateSchema()
+    {
+        return new
+        {
+            type = "object",
+            properties = new
+            {
+                caloriesPerServing = new
+                {
+                    type = "integer",
+                    description = "Porsiyon başına tahmini kalori.",
+                    minimum = 0
+                },
+                proteinGramsPerServing = new
+                {
+                    type = "number",
+                    description = "Porsiyon başına protein gramı.",
+                    minimum = 0
+                },
+                carbohydrateGramsPerServing = new
+                {
+                    type = "number",
+                    description = "Porsiyon başına karbonhidrat gramı.",
+                    minimum = 0
+                },
+                fatGramsPerServing = new
+                {
+                    type = "number",
+                    description = "Porsiyon başına yağ gramı.",
+                    minimum = 0
+                },
+                isEstimated = new
+                {
+                    type = "boolean",
+                    description = "Değerlerin tahmini olduğunu belirtir."
+                }
+            },
+            required = new[]
+            {
+            "caloriesPerServing",
+            "proteinGramsPerServing",
+            "carbohydrateGramsPerServing",
+            "fatGramsPerServing",
+            "isEstimated"
+        }
+        };
     }
 }

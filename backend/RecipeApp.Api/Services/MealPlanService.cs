@@ -96,7 +96,11 @@ public class MealPlanService : IMealPlanService
                 RecipeTitle = item.Recipe.Title,
                 RecipeImageUrl = item.Recipe.ImageUrl,
                 Date = item.Date,
-                MealType = item.MealType
+                MealType = item.MealType,
+                CaloriesPerServing = item.Recipe.CaloriesPerServing,
+                ProteinGramsPerServing = item.Recipe.ProteinGramsPerServing,
+                CarbohydrateGramsPerServing = item.Recipe.CarbohydrateGramsPerServing,
+                FatGramsPerServing = item.Recipe.FatGramsPerServing
             })
             .ToListAsync();
     }
@@ -234,7 +238,14 @@ public class MealPlanService : IMealPlanService
             RecipeTitle = item.Recipe.Title,
             RecipeImageUrl = item.Recipe.ImageUrl,
             Date = item.Date,
-            MealType = item.MealType
+            MealType = item.MealType,
+            CaloriesPerServing = item.Recipe.CaloriesPerServing,
+            ProteinGramsPerServing =
+            item.Recipe.ProteinGramsPerServing,
+            CarbohydrateGramsPerServing =
+            item.Recipe.CarbohydrateGramsPerServing,
+            FatGramsPerServing =
+            item.Recipe.FatGramsPerServing
         };
     }
 

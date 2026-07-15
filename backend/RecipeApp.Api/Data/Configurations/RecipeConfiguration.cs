@@ -32,5 +32,16 @@ public class RecipeConfiguration: IEntityTypeConfiguration<Recipe>
             .WithOne(s => s.Recipe)
             .HasForeignKey(s => s.RecipeId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Property(recipe => recipe.ProteinGramsPerServing)
+    .HasPrecision(8, 2);
+
+        builder.Property(recipe => recipe.CarbohydrateGramsPerServing)
+            .HasPrecision(8, 2);
+
+        builder.Property(recipe => recipe.FatGramsPerServing)
+            .HasPrecision(8, 2);
     }
+
+
 }

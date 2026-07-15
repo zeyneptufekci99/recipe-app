@@ -145,6 +145,7 @@ export function useMealPlan() {
   };
 
   return {
+    mealPlan,
     weekStart,
     weekEnd,
     weekDays,

@@ -19,4 +19,10 @@ public class RecipeDetailDto
     public List<IngredientResponseDto> Ingredients { get; set; } = new();
     public List<RecipeStepResponseDto> Steps { get; set; } = new();
     public bool IsFavorite { get; set; }
+
+    public int? CaloriesPerServing { get; set; }
+    public decimal? ProteinGramsPerServing { get; set; }
+    public decimal? CarbohydrateGramsPerServing { get; set; }
+    public decimal? FatGramsPerServing { get; set; }
+    public DateTime? NutritionEstimatedAt { get; set; }
 }

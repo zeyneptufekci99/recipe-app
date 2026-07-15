@@ -7,6 +7,11 @@ export interface MealPlanItem {
   recipeImageUrl?: string | null;
   date: string;
   mealType: MealType;
+
+  caloriesPerServing?: number | null;
+  proteinGramsPerServing?: number | null;
+  carbohydrateGramsPerServing?: number | null;
+  fatGramsPerServing?: number | null;
 }
 
 export interface CreateMealPlanItemRequest {

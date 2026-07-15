@@ -157,12 +157,15 @@ public class RecipeController : BaseController
         CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(dto.Prompt))
+        {
             return BadRequest("Tarif açıklaması zorunludur.");
+        }
 
         try
         {
             var result = await _aiRecipeService.GenerateRecipeAsync(
                 dto.Prompt,
+                dto.PantryIngredients,
                 cancellationToken
             );
 
@@ -170,7 +173,10 @@ public class RecipeController : BaseController
         }
         catch (ArgumentException exception)
         {
-            return BadRequest(exception.Message);
+            return BadRequest(new
+            {
+                message = exception.Message
+            });
         }
         catch (InvalidOperationException exception)
         {
@@ -280,6 +286,63 @@ public class RecipeController : BaseController
                 new
                 {
                     message = "AI asistanı cevap veremedi.",
+                    detail = exception.Message
+                }
+            );
+        }
+    }
+
+    [HttpPost("{id}/estimate-nutrition")]
+    public async Task<IActionResult> EstimateNutrition(
+    Guid id,
+    CancellationToken cancellationToken)
+    {
+        var recipe = await _recipeService.GetByIdAsync(
+            id,
+            CurrentUserId
+        );
+
+        if (recipe == null)
+        {
+            return NotFound("Tarif bulunamadı.");
+        }
+
+        try
+        {
+            var nutrition =
+                await _aiRecipeService.EstimateNutritionAsync(
+                    recipe,
+                    cancellationToken
+                );
+
+            var updated = await _recipeService.UpdateNutritionAsync(
+                id,
+                CurrentUserId,
+                nutrition,
+                cancellationToken
+            );
+
+            if (!updated)
+            {
+                return NotFound("Tarif bulunamadı.");
+            }
+
+            return Ok(nutrition);
+        }
+        catch (ArgumentException exception)
+        {
+            return BadRequest(new
+            {
+                message = exception.Message
+            });
+        }
+        catch (InvalidOperationException exception)
+        {
+            return StatusCode(
+                StatusCodes.Status502BadGateway,
+                new
+                {
+                    message = "Besin değerleri hesaplanamadı.",
                     detail = exception.Message
                 }
             );

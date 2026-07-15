@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using RecipeApp.Api.Data;
@@ -11,9 +12,11 @@ using RecipeApp.Api.Data;
 namespace RecipeApp.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260715153020_AddRecipeNutrition")]
+    partial class AddRecipeNutrition
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -50,96 +53,45 @@ namespace RecipeApp.Api.Migrations
                         new
                         {
                             Id = new Guid("11111111-1111-1111-1111-111111111111"),
-                            CreatedAt = new DateTime(2026, 7, 15, 17, 18, 58, 882, DateTimeKind.Utc).AddTicks(9922),
+                            CreatedAt = new DateTime(2026, 7, 15, 15, 30, 19, 841, DateTimeKind.Utc).AddTicks(8428),
                             Name = "Kahvaltı"
                         },
                         new
                         {
                             Id = new Guid("22222222-2222-2222-2222-222222222222"),
-                            CreatedAt = new DateTime(2026, 7, 15, 17, 18, 58, 882, DateTimeKind.Utc).AddTicks(9935),
+                            CreatedAt = new DateTime(2026, 7, 15, 15, 30, 19, 841, DateTimeKind.Utc).AddTicks(8442),
                             Name = "Çorba"
                         },
                         new
                         {
                             Id = new Guid("33333333-3333-3333-3333-333333333333"),
-                            CreatedAt = new DateTime(2026, 7, 15, 17, 18, 58, 882, DateTimeKind.Utc).AddTicks(9936),
+                            CreatedAt = new DateTime(2026, 7, 15, 15, 30, 19, 841, DateTimeKind.Utc).AddTicks(8444),
                             Name = "Ana Yemek"
                         },
                         new
                         {
                             Id = new Guid("44444444-4444-4444-4444-444444444444"),
-                            CreatedAt = new DateTime(2026, 7, 15, 17, 18, 58, 882, DateTimeKind.Utc).AddTicks(9938),
+                            CreatedAt = new DateTime(2026, 7, 15, 15, 30, 19, 841, DateTimeKind.Utc).AddTicks(8446),
                             Name = "Tatlı"
                         },
                         new
                         {
                             Id = new Guid("55555555-5555-5555-5555-555555555555"),
-                            CreatedAt = new DateTime(2026, 7, 15, 17, 18, 58, 882, DateTimeKind.Utc).AddTicks(9940),
+                            CreatedAt = new DateTime(2026, 7, 15, 15, 30, 19, 841, DateTimeKind.Utc).AddTicks(8448),
                             Name = "Atıştırmalık"
                         },
                         new
                         {
                             Id = new Guid("66666666-6666-6666-6666-666666666666"),
-                            CreatedAt = new DateTime(2026, 7, 15, 17, 18, 58, 882, DateTimeKind.Utc).AddTicks(9941),
+                            CreatedAt = new DateTime(2026, 7, 15, 15, 30, 19, 841, DateTimeKind.Utc).AddTicks(8449),
                             Name = "İçecek"
                         },
                         new
                         {
                             Id = new Guid("77777777-7777-7777-7777-777777777777"),
-                            CreatedAt = new DateTime(2026, 7, 15, 17, 18, 58, 882, DateTimeKind.Utc).AddTicks(9943),
+                            CreatedAt = new DateTime(2026, 7, 15, 15, 30, 19, 841, DateTimeKind.Utc).AddTicks(8451),
                             Name = "Salata"
                         });
-                });
-
-            modelBuilder.Entity("RecipeApp.Api.Models.Collection", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.HasIndex("UserId", "Name");
-
-                    b.ToTable("Collections");
-                });
-
-            modelBuilder.Entity("RecipeApp.Api.Models.CollectionRecipe", b =>
-                {
-                    b.Property<Guid>("CollectionId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("RecipeId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("CollectionId", "RecipeId");
-
-                    b.HasIndex("RecipeId");
-
-                    b.ToTable("CollectionRecipes");
                 });
 
             modelBuilder.Entity("RecipeApp.Api.Models.Ingredient", b =>
@@ -419,36 +371,6 @@ namespace RecipeApp.Api.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("RecipeApp.Api.Models.Collection", b =>
-                {
-                    b.HasOne("RecipeApp.Api.Models.User", "User")
-                        .WithMany("Collections")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("RecipeApp.Api.Models.CollectionRecipe", b =>
-                {
-                    b.HasOne("RecipeApp.Api.Models.Collection", "Collection")
-                        .WithMany("CollectionRecipes")
-                        .HasForeignKey("CollectionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("RecipeApp.Api.Models.Recipe", "Recipe")
-                        .WithMany()
-                        .HasForeignKey("RecipeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Collection");
-
-                    b.Navigation("Recipe");
-                });
-
             modelBuilder.Entity("RecipeApp.Api.Models.Ingredient", b =>
                 {
                     b.HasOne("RecipeApp.Api.Models.Recipe", "Recipe")
@@ -543,11 +465,6 @@ namespace RecipeApp.Api.Migrations
                     b.Navigation("Recipes");
                 });
 
-            modelBuilder.Entity("RecipeApp.Api.Models.Collection", b =>
-                {
-                    b.Navigation("CollectionRecipes");
-                });
-
             modelBuilder.Entity("RecipeApp.Api.Models.Recipe", b =>
                 {
                     b.Navigation("Ingredients");
@@ -562,8 +479,6 @@ namespace RecipeApp.Api.Migrations
 
             modelBuilder.Entity("RecipeApp.Api.Models.User", b =>
                 {
-                    b.Navigation("Collections");
-
                     b.Navigation("Recipes");
                 });
 #pragma warning restore 612, 618

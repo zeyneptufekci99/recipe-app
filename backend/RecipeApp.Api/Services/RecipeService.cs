@@ -273,4 +273,43 @@ public class RecipeService : IRecipeService
             MostUsedCategory = mostUsedCategory
         };
     }
+
+    public async Task<bool> UpdateNutritionAsync(
+    Guid id,
+    Guid userId,
+    NutritionEstimateDto nutrition,
+    CancellationToken cancellationToken = default)
+    {
+        var recipe = await _context.Recipes
+            .FirstOrDefaultAsync(
+                recipe =>
+                    recipe.Id == id &&
+                    recipe.UserId == userId,
+                cancellationToken
+            );
+
+        if (recipe == null)
+        {
+            return false;
+        }
+
+        recipe.CaloriesPerServing =
+            Math.Max(0, nutrition.CaloriesPerServing);
+
+        recipe.ProteinGramsPerServing =
+            Math.Max(0, nutrition.ProteinGramsPerServing);
+
+        recipe.CarbohydrateGramsPerServing =
+            Math.Max(0, nutrition.CarbohydrateGramsPerServing);
+
+        recipe.FatGramsPerServing =
+            Math.Max(0, nutrition.FatGramsPerServing);
+
+        recipe.NutritionEstimatedAt = DateTime.UtcNow;
+        recipe.UpdatedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync(cancellationToken);
+
+        return true;
+    }
 }

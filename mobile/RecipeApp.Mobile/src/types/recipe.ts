@@ -48,6 +48,11 @@ export interface RecipeDetail extends RecipeListItem {
   ingredients: Ingredient[];
   steps: RecipeStep[];
   categoryId: string;
+  caloriesPerServing?: number | null;
+  proteinGramsPerServing?: number | null;
+  carbohydrateGramsPerServing?: number | null;
+  fatGramsPerServing?: number | null;
+  nutritionEstimatedAt?: string | null;
 }
 
 export interface CreateIngredientRequest {
@@ -106,6 +111,7 @@ export interface ProfileStatistics {
 }
 export interface GenerateRecipeWithAiRequest {
   prompt: string;
+  pantryIngredients?: string[];
 }
 export interface TransformRecipeWithAiRequest {
   instruction: string;
@@ -116,4 +122,12 @@ export interface AskRecipeAssistantRequest {
 
 export interface RecipeAssistantResponse {
   answer: string;
+}
+
+export interface NutritionEstimate {
+  caloriesPerServing: number;
+  proteinGramsPerServing: number;
+  carbohydrateGramsPerServing: number;
+  fatGramsPerServing: number;
+  isEstimated: boolean;
 }

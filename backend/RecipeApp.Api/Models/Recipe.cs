@@ -21,4 +21,10 @@ public class Recipe : BaseEntity
     public Category Category { get; set; } = null!;
     public ICollection<Ingredient> Ingredients { get; set; } = new List<Ingredient>();
     public ICollection<RecipeStep> Steps { get; set; } = new List<RecipeStep>();
+
+    public int? CaloriesPerServing { get; set; }
+    public decimal? ProteinGramsPerServing { get; set; }
+    public decimal? CarbohydrateGramsPerServing { get; set; }
+    public decimal? FatGramsPerServing { get; set; }
+    public DateTime? NutritionEstimatedAt { get; set; }
 }

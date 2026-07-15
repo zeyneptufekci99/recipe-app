@@ -30,4 +30,10 @@ public interface IRecipeService
 
     Task<ProfileStatisticsDto> GetStatisticsAsync(Guid userId);
 
+    Task<bool> UpdateNutritionAsync(
+    Guid id,
+    Guid userId,
+    NutritionEstimateDto nutrition,
+    CancellationToken cancellationToken = default
+);
 }

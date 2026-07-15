@@ -6,6 +6,7 @@ import type {
   GetRecipesParams,
   ImportedRecipe,
   ImportRecipeFromUrlRequest,
+  NutritionEstimate,
   PagedResult,
   ProfileStatistics,
   RecipeAssistantResponse,
@@ -158,6 +159,17 @@ export const recipeApi = baseApi.injectEndpoints({
         body,
       }),
     }),
+    estimateRecipeNutrition: builder.mutation<NutritionEstimate, string>({
+      query: (recipeId) => ({
+        url: `/Recipe/${recipeId}/estimate-nutrition`,
+        method: "POST",
+      }),
+      invalidatesTags: (_result, _error, recipeId) => [
+        { type: "Recipe", id: recipeId },
+        "Recipe",
+        "MealPlan",
+      ],
+    }),
   }),
 });
 
@@ -175,4 +187,5 @@ export const {
   useGetRecipeStatisticsQuery,
   useGenerateRecipeWithAiMutation,
   useAskRecipeAssistantMutation,
+  useEstimateRecipeNutritionMutation,
 } = recipeApi;

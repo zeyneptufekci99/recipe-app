@@ -11,11 +11,26 @@ interface MealCardProps {
     icon: string;
   };
   item?: MealPlanItem;
+  isEstimatingNutrition?: boolean;
   onEdit: () => void;
   onDelete: () => void;
+  onEstimateNutrition: () => void;
 }
 
-export function MealCard({ mealType, item, onEdit, onDelete }: MealCardProps) {
+export function MealCard({
+  mealType,
+  item,
+  isEstimatingNutrition = false,
+  onEdit,
+  onDelete,
+  onEstimateNutrition,
+}: MealCardProps) {
+  const hasNutrition =
+    item?.caloriesPerServing != null &&
+    item?.proteinGramsPerServing != null &&
+    item?.carbohydrateGramsPerServing != null &&
+    item?.fatGramsPerServing != null;
+
   return (
     <AppCard>
       <View className="flex-row items-center gap-3">
@@ -33,14 +48,45 @@ export function MealCard({ mealType, item, onEdit, onDelete }: MealCardProps) {
           </Text>
 
           {item ? (
-            <TouchableOpacity
-              onPress={() => router.push(`/recipe/${item.recipeId}`)}
-              activeOpacity={0.8}
-            >
-              <Text className="mt-1 text-base font-bold text-text">
-                {item.recipeTitle}
-              </Text>
-            </TouchableOpacity>
+            <>
+              <TouchableOpacity
+                onPress={() => router.push(`/recipe/${item.recipeId}`)}
+                activeOpacity={0.8}
+              >
+                <Text className="mt-1 text-base font-bold text-text">
+                  {item.recipeTitle}
+                </Text>
+              </TouchableOpacity>
+
+              {!hasNutrition ? (
+                <TouchableOpacity
+                  onPress={onEstimateNutrition}
+                  disabled={isEstimatingNutrition}
+                  activeOpacity={0.8}
+                  className="mt-2 flex-row items-center self-start rounded-full bg-secondary/10 px-3 py-1.5"
+                >
+                  <Ionicons name="warning-outline" size={15} color="#FAA307" />
+
+                  <Text className="ml-1.5 text-xs font-semibold text-secondary">
+                    {isEstimatingNutrition
+                      ? "Hesaplanıyor..."
+                      : "Besin değerini hesapla"}
+                  </Text>
+                </TouchableOpacity>
+              ) : (
+                <View className="mt-2 flex-row items-center">
+                  <Ionicons
+                    name="checkmark-circle-outline"
+                    size={15}
+                    color="#2F9E44"
+                  />
+
+                  <Text className="ml-1.5 text-xs font-semibold text-success">
+                    Besin değerleri hazır
+                  </Text>
+                </View>
+              )}
+            </>
           ) : (
             <Text className="mt-1 text-sm text-muted">
               Henüz tarif eklenmedi
