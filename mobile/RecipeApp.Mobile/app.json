@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "RecipeApp",
-    "slug": "recipeapp-mobile",
+    "name": "Cooksy",
+    "slug": "cooksy",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -12,10 +12,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#E85D04"
       },
       "predictiveBackGestureEnabled": false
     },
@@ -28,9 +26,14 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
+          "backgroundColor": "#E85D04",
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76
+          "imageWidth": 180,
+          "resizeMode": "contain",
+          "dark": {
+            "backgroundColor": "#E85D04",
+            "image": "./assets/images/splash-icon.png"
+          }
         }
       ],
       "expo-secure-store"

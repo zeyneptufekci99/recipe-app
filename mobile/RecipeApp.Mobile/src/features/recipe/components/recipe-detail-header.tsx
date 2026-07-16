@@ -12,13 +12,18 @@ interface RecipeDetailHeaderProps {
   onFavoritePress?: () => void;
 }
 
+interface InfoItemProps {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  value: string;
+}
+
 export function RecipeDetailHeader({
   recipe,
   onFavoritePress,
 }: RecipeDetailHeaderProps) {
-  const rating = recipe.rating ?? 4.8;
-  const reviewCount = recipe.reviewCount ?? 126;
   const imageSource = getImageUrl(recipe.imageUrl);
+  const totalTime = recipe.prepTime + recipe.cookTime;
 
   const handleShare = async () => {
     await shareService.shareRecipe(recipe);
@@ -35,11 +40,14 @@ export function RecipeDetailHeader({
           }
           contentFit="cover"
           transition={300}
-          className="h-72 w-full rounded-3xl"
+          className="h-72 w-full rounded-3xl bg-border"
         />
 
         <TouchableOpacity
           onPress={() => router.back()}
+          activeOpacity={0.8}
+          accessibilityRole="button"
+          accessibilityLabel="Geri dön"
           className="absolute left-4 top-4 h-10 w-10 items-center justify-center rounded-full bg-white/90"
         >
           <Ionicons name="chevron-back" size={22} color="#2B2B2B" />
@@ -53,29 +61,96 @@ export function RecipeDetailHeader({
 
           <TouchableOpacity
             onPress={handleShare}
+            activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel="Tarifi paylaş"
             className="h-10 w-10 items-center justify-center rounded-full bg-white/90"
           >
-            <Ionicons name="share-outline" size={22} color="#2B2B2B" />
+            <Ionicons name="share-outline" size={21} color="#2B2B2B" />
           </TouchableOpacity>
         </View>
       </View>
 
       <View className="mt-5">
-        <Text className="text-3xl font-bold text-text">{recipe.title}</Text>
-        <Text className="mt-1 text-base text-muted">{recipe.category}</Text>
-
-        <View className="mt-3 flex-row items-center gap-1">
-          <Ionicons name="star" size={16} color="#FAA307" />
-          <Text className="text-sm font-semibold text-text">{rating}</Text>
-          <Text className="text-sm text-muted">({reviewCount} reviews)</Text>
+        <View className="self-start rounded-full bg-primary/10 px-3 py-1.5">
+          <Text className="text-sm font-semibold text-primary">
+            {recipe.category}
+          </Text>
         </View>
 
+        <Text className="mt-3 text-3xl font-bold leading-10 text-text">
+          {recipe.title}
+        </Text>
+
         {recipe.description ? (
-          <Text className="mt-4 text-base leading-6 text-muted">
+          <Text className="mt-3 text-base leading-6 text-muted">
             {recipe.description}
           </Text>
         ) : null}
+
+        <View className="mt-5 flex-row gap-3">
+          <InfoItem
+            icon="time-outline"
+            label="Toplam süre"
+            value={`${totalTime} dk`}
+          />
+
+          <InfoItem
+            icon="people-outline"
+            label="Porsiyon"
+            value={`${recipe.servings} kişilik`}
+          />
+
+          <InfoItem
+            icon="speedometer-outline"
+            label="Zorluk"
+            value={getDifficultyLabel(recipe.difficulty)}
+          />
+        </View>
+
+        <View className="mt-3 flex-row gap-3">
+          <InfoItem
+            icon="hourglass-outline"
+            label="Hazırlık"
+            value={`${recipe.prepTime} dk`}
+          />
+
+          <InfoItem
+            icon="flame-outline"
+            label="Pişirme"
+            value={`${recipe.cookTime} dk`}
+          />
+        </View>
       </View>
     </View>
   );
+}
+
+function InfoItem({ icon, label, value }: InfoItemProps) {
+  return (
+    <View className="flex-1 rounded-2xl border border-border bg-surface p-3">
+      <Ionicons name={icon} size={19} color="#E85D04" />
+
+      <Text className="mt-2 text-xs font-medium text-muted">{label}</Text>
+
+      <Text className="mt-1 text-sm font-bold text-text">{value}</Text>
+    </View>
+  );
+}
+
+function getDifficultyLabel(difficulty: number | string) {
+  if (typeof difficulty === "string") {
+    return difficulty;
+  }
+
+  switch (difficulty) {
+    case 1:
+      return "Kolay";
+    case 2:
+      return "Orta";
+    case 3:
+      return "Zor";
+    default:
+      return "Belirsiz";
+  }
 }

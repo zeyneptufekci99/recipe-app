@@ -20,7 +20,7 @@ import { toastService } from "@/services/toast-service";
 import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
-import { ScrollView, Text, View } from "react-native";
+import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 
 export default function RecipeDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -153,61 +153,85 @@ export default function RecipeDetailScreen() {
         contentContainerClassName="p-4 pb-10"
         showsVerticalScrollIndicator={false}
       >
-        <Text className="text-3xl font-bold text-text">{data.title}</Text>
-        <Text className="mt-2 text-muted">{data.category}</Text>
-
         <RecipeDetailHeader
           recipe={data}
           onFavoritePress={() => toggleFavorite(data.id)}
         />
 
-        <View className="mt-4 gap-3">
-          <AppButton
-            title="Düzenle"
-            onPress={() => router.push(`/recipe/edit/${data.id}`)}
-          />
+        <View className="mt-6 gap-3">
+          <View className="flex-row gap-3">
+            <View className="flex-1">
+              <AppButton
+                title="Düzenle"
+                onPress={() => router.push(`/recipe/edit/${data.id}`)}
+              />
+            </View>
 
-          <AppButton
-            title={isDuplicating ? "Kopyalanıyor..." : "Tarifi Kopyala"}
+            <View className="flex-1">
+              <AppButton
+                title="AI Araçları"
+                onPress={() => setShowAiToolsModal(true)}
+                variant="outline"
+              />
+            </View>
+          </View>
+
+          <View className="flex-row gap-3">
+            <TouchableOpacity
+              onPress={() => setShowShoppingListModal(true)}
+              activeOpacity={0.85}
+              className="flex-1 rounded-2xl border border-border bg-surface p-4"
+            >
+              <Ionicons name="cart-outline" size={22} color="#E85D04" />
+
+              <Text className="mt-3 font-bold text-text">
+                Alışveriş Listesi
+              </Text>
+
+              <Text className="mt-1 text-xs leading-5 text-muted">
+                Malzemeleri listene ekle
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => setShowCollectionModal(true)}
+              activeOpacity={0.85}
+              className="flex-1 rounded-2xl border border-border bg-surface p-4"
+            >
+              <Ionicons name="albums-outline" size={22} color="#E85D04" />
+
+              <Text className="mt-3 font-bold text-text">Koleksiyon</Text>
+
+              <Text className="mt-1 text-xs leading-5 text-muted">
+                Tarifi gruplandır
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity
             onPress={handleDuplicate}
             disabled={isDuplicating}
-            variant="outline"
-          />
-
-          <AppButton
-            title="Alışveriş Listesine Ekle"
-            onPress={() => setShowShoppingListModal(true)}
-            variant="outline"
-          />
-
-          {recipeCollections.length > 0 ? (
-            <View className="mt-4 rounded-2xl border border-border bg-surface p-4">
-              <View className="flex-row items-center gap-2">
-                <Ionicons name="albums-outline" size={19} color="#E85D04" />
-
-                <Text className="font-semibold text-text">
-                  {recipeCollections.length} koleksiyonda
-                </Text>
+            activeOpacity={0.85}
+            className="flex-row items-center justify-between rounded-2xl border border-border bg-surface p-4"
+          >
+            <View className="flex-row items-center gap-3">
+              <View className="h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+                <Ionicons name="copy-outline" size={21} color="#E85D04" />
               </View>
 
-              <Text className="mt-2 text-sm leading-5 text-muted">
-                {recipeCollections
-                  .map((item) => item.collectionName)
-                  .join(", ")}
-              </Text>
-            </View>
-          ) : null}
-          <AppButton
-            title="Koleksiyona Ekle"
-            onPress={() => setShowCollectionModal(true)}
-            variant="outline"
-          />
+              <View>
+                <Text className="font-bold text-text">
+                  {isDuplicating ? "Kopyalanıyor..." : "Tarifi Kopyala"}
+                </Text>
 
-          <AppButton
-            title="AI Araçları"
-            onPress={() => setShowAiToolsModal(true)}
-            variant="outline"
-          />
+                <Text className="mt-1 text-xs text-muted">
+                  Düzenlemek için yeni bir kopya oluştur
+                </Text>
+              </View>
+            </View>
+
+            <Ionicons name="chevron-forward" size={20} color="#7A7A7A" />
+          </TouchableOpacity>
         </View>
 
         {hasNutrition ? <NutritionCard recipe={data} /> : null}
@@ -215,8 +239,7 @@ export default function RecipeDetailScreen() {
         <IngredientList ingredients={data.ingredients} />
 
         <InstructionList steps={data.steps} />
-
-        <View className="mt-6">
+        <View className="mt-8 border-t border-border pt-6">
           <AppButton
             title="Tarifi Sil"
             onPress={() => setShowDeleteDialog(true)}

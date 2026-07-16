@@ -1,5 +1,4 @@
 import {
-  AppButton,
   AppCard,
   AppScreen,
   ConfirmDialog,
@@ -14,29 +13,39 @@ import { MealCard } from "@/features/meal-plan/components/meal-card";
 import { MealRecipePickerModal } from "@/features/meal-plan/components/meal-recipe-picker-modal";
 import { NutritionSummaryCard } from "@/features/meal-plan/components/nutrition-summary-card";
 import { WeekSelector } from "@/features/meal-plan/components/week-selector";
-
 import { MEAL_TYPES } from "@/features/meal-plan/constants";
 import { useMealPlan } from "@/features/meal-plan/hooks/use-meal-plan";
 import { useEstimateRecipeNutritionMutation } from "@/features/recipe/api";
 import dayjs from "@/lib/dayjs";
 import { toastService } from "@/services/toast-service";
-import { AiPlannerFormValues } from "@/types/ai-planner";
+import type { AiPlannerFormValues } from "@/types/ai-planner";
+import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
-import { ScrollView, Text, View } from "react-native";
+import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+
+interface PlannerActionCardProps {
+  title: string;
+  description: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  variant?: "primary" | "secondary";
+  disabled?: boolean;
+  onPress: () => void;
+}
 
 export default function MealPlannerScreen() {
   const [showShoppingListModal, setShowShoppingListModal] = useState(false);
+
   const [showAiPlanner, setShowAiPlanner] = useState(false);
+
   const [pendingPlannerValues, setPendingPlannerValues] =
     useState<AiPlannerFormValues | null>(null);
-  const [generateWeeklyPlan, { isLoading: isGeneratingPlan }] =
-    useGenerateWeeklyMealPlanMutation();
-  const handleRequestAiPlan = (values: AiPlannerFormValues) => {
-    setPendingPlannerValues(values);
-  };
+
   const [estimatingRecipeId, setEstimatingRecipeId] = useState<string | null>(
     null,
   );
+
+  const [generateWeeklyPlan, { isLoading: isGeneratingPlan }] =
+    useGenerateWeeklyMealPlanMutation();
 
   const [estimateNutrition] = useEstimateRecipeNutritionMutation();
 
@@ -69,7 +78,14 @@ export default function MealPlannerScreen() {
     confirmDelete,
   } = useMealPlan();
 
-  console.log("mealPlan", mealPlan);
+  const selectedDayLabel = dayjs(selectedDate).format("D MMMM dddd");
+
+  const plannedMealCount = selectedDayItems.length;
+  const hasWeeklyMeals = mealPlan.length > 0;
+
+  const handleRequestAiPlan = (values: AiPlannerFormValues) => {
+    setPendingPlannerValues(values);
+  };
 
   const handleConfirmAiPlan = async () => {
     if (!pendingPlannerValues) return;
@@ -95,8 +111,8 @@ export default function MealPlannerScreen() {
 
       setPendingPlannerValues(null);
       setShowAiPlanner(false);
-    } catch (error) {
-      console.log("Generate weekly meal plan error:", error);
+    } catch (generateError) {
+      console.log("Generate weekly meal plan error:", generateError);
 
       toastService.error(
         "Plan oluşturulamadı",
@@ -115,8 +131,8 @@ export default function MealPlannerScreen() {
         "Besin değerleri hesaplandı",
         "Günlük ve haftalık toplamlar güncellendi.",
       );
-    } catch (error) {
-      console.log("Estimate meal nutrition error:", error);
+    } catch (estimateError) {
+      console.log("Estimate meal nutrition error:", estimateError);
 
       toastService.error(
         "Hesaplama başarısız",
@@ -131,99 +147,147 @@ export default function MealPlannerScreen() {
     <AppScreen>
       <PageHeader title="Yemek Planı" />
 
-      <WeekSelector
-        weekStart={weekStart}
-        weekEnd={weekEnd}
-        onPrevious={goToPreviousWeek}
-        onNext={goToNextWeek}
-        onCurrentWeek={goToCurrentWeek}
-      />
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerClassName="pb-10"
+      >
+        <AppCard className="mb-5 p-4">
+          <WeekSelector
+            weekStart={weekStart}
+            weekEnd={weekEnd}
+            onPrevious={goToPreviousWeek}
+            onNext={goToNextWeek}
+            onCurrentWeek={goToCurrentWeek}
+          />
 
-      <DaySelector
-        days={weekDays}
-        selectedDate={selectedDate}
-        onSelect={setSelectedDate}
-      />
-
-      <View className="mt-4 gap-3">
-        <AppButton
-          title="AI ile Haftalık Plan Oluştur"
-          onPress={() => setShowAiPlanner(true)}
-        />
-
-        <AppButton
-          title="Bu Haftadan Alışveriş Listesi Oluştur"
-          variant="outline"
-          onPress={() => setShowShoppingListModal(true)}
-        />
-      </View>
-
-      <Text className="mb-4 mt-6 text-xl font-bold capitalize text-text">
-        {dayjs(selectedDate).format("D MMMM dddd")}
-      </Text>
-
-      {isLoading ? (
-        <LoadingSpinner />
-      ) : error ? (
-        <AppCard>
-          <Text className="text-center text-danger">
-            Yemek planı yüklenemedi.
-          </Text>
+          <View className="mt-4">
+            <DaySelector
+              days={weekDays}
+              selectedDate={selectedDate}
+              onSelect={setSelectedDate}
+            />
+          </View>
         </AppCard>
-      ) : (
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerClassName="gap-3 pb-10"
-        >
-          {MEAL_TYPES.map((mealType) => {
-            const item = selectedDayItems.find(
-              (meal) => meal.mealType === mealType.value,
-            );
 
-            return (
-              <MealCard
-                key={mealType.value}
-                mealType={mealType}
-                item={item}
-                isEstimatingNutrition={
-                  item != null && estimatingRecipeId === item.recipeId
-                }
-                onEstimateNutrition={() => {
-                  if (item) {
-                    handleEstimateNutrition(item.recipeId);
-                  }
-                }}
-                onEdit={() => openMealPicker(mealType.value, item)}
-                onDelete={() => {
-                  if (item) {
-                    setItemToDelete(item);
-                  }
-                }}
-              />
-            );
-          })}
+        <View className="mb-6">
+          <Text className="mb-3 text-lg font-bold text-text">
+            Planlama Araçları
+          </Text>
 
-          <NutritionSummaryCard
-            title="Günün Tahmini Besin Değerleri"
-            items={selectedDayItems}
-          />
+          <View className="flex-row gap-3">
+            <PlannerActionCard
+              title="AI Plan"
+              description="Tercihlerine göre haftalık menü oluştur"
+              icon="sparkles-outline"
+              variant="primary"
+              disabled={isGeneratingPlan}
+              onPress={() => setShowAiPlanner(true)}
+            />
 
-          <NutritionSummaryCard
-            title="Haftalık Günlük Ortalama"
-            items={mealPlan}
-            mode="daily-average"
-            dayCount={weekDays.length}
-          />
+            <PlannerActionCard
+              title="Market Listesi"
+              description="Bu haftanın malzemelerini listele"
+              icon="cart-outline"
+              variant="secondary"
+              onPress={() => setShowShoppingListModal(true)}
+            />
+          </View>
+        </View>
+
+        <View className="mb-4 flex-row items-end justify-between">
+          <View className="flex-1 pr-3">
+            <Text className="text-xl font-bold capitalize text-text">
+              {selectedDayLabel}
+            </Text>
+
+            <Text className="mt-1 text-sm text-muted">
+              {plannedMealCount > 0
+                ? `${plannedMealCount} öğün planlandı`
+                : "Bu gün için henüz öğün eklenmedi"}
+            </Text>
+          </View>
 
           {isFetching && !isLoading ? (
-            <View className="py-2">
-              <Text className="text-center text-sm text-muted">
-                Plan güncelleniyor...
+            <View className="flex-row items-center rounded-full bg-primary/10 px-3 py-1.5">
+              <LoadingSpinner />
+              <Text className="ml-2 text-xs font-semibold text-primary">
+                Güncelleniyor
               </Text>
             </View>
           ) : null}
-        </ScrollView>
-      )}
+        </View>
+
+        {isLoading ? (
+          <View className="gap-3">
+            <MealCardSkeleton />
+            <MealCardSkeleton />
+            <MealCardSkeleton />
+            <MealCardSkeleton />
+          </View>
+        ) : error ? (
+          <AppCard className="items-center py-8">
+            <View className="h-14 w-14 items-center justify-center rounded-full bg-danger/10">
+              <Ionicons name="alert-circle-outline" size={27} color="#D9480F" />
+            </View>
+
+            <Text className="mt-4 text-lg font-bold text-text">
+              Yemek planı yüklenemedi
+            </Text>
+
+            <Text className="mt-2 px-6 text-center text-sm leading-5 text-muted">
+              Bağlantını kontrol edip tekrar deneyebilirsin.
+            </Text>
+          </AppCard>
+        ) : (
+          <View className="gap-3">
+            {MEAL_TYPES.map((mealType) => {
+              const item = selectedDayItems.find(
+                (meal) => meal.mealType === mealType.value,
+              );
+
+              return (
+                <MealCard
+                  key={mealType.value}
+                  mealType={mealType}
+                  item={item}
+                  isEstimatingNutrition={
+                    item != null && estimatingRecipeId === item.recipeId
+                  }
+                  onEstimateNutrition={() => {
+                    if (item) {
+                      handleEstimateNutrition(item.recipeId);
+                    }
+                  }}
+                  onEdit={() => openMealPicker(mealType.value, item)}
+                  onDelete={() => {
+                    if (item) {
+                      setItemToDelete(item);
+                    }
+                  }}
+                />
+              );
+            })}
+
+            <View className="mt-3">
+              <NutritionSummaryCard
+                title="Günün Tahmini Besin Değerleri"
+                items={selectedDayItems}
+              />
+            </View>
+
+            {hasWeeklyMeals ? (
+              <View className="mt-3">
+                <NutritionSummaryCard
+                  title="Haftalık Günlük Ortalama"
+                  items={mealPlan}
+                  mode="daily-average"
+                  dayCount={weekDays.length}
+                />
+              </View>
+            ) : null}
+          </View>
+        )}
+      </ScrollView>
 
       <MealRecipePickerModal
         visible={selectedMeal !== null}
@@ -236,9 +300,9 @@ export default function MealPlannerScreen() {
         visible={showShoppingListModal}
         startDate={weekStart.format("YYYY-MM-DD")}
         endDate={weekEnd.format("YYYY-MM-DD")}
-        defaultName={`${weekStart.format("D MMM")} - ${weekEnd.format(
+        defaultName={`${weekStart.format(
           "D MMM",
-        )} Market Listesi`}
+        )} - ${weekEnd.format("D MMM")} Market Listesi`}
         onClose={() => setShowShoppingListModal(false)}
       />
 
@@ -268,6 +332,7 @@ export default function MealPlannerScreen() {
         }}
         onGenerate={handleRequestAiPlan}
       />
+
       <ConfirmDialog
         visible={pendingPlannerValues !== null}
         title="Yeni plan oluşturulsun mu?"
@@ -284,5 +349,78 @@ export default function MealPlannerScreen() {
         onConfirm={handleConfirmAiPlan}
       />
     </AppScreen>
+  );
+}
+
+function PlannerActionCard({
+  title,
+  description,
+  icon,
+  variant = "secondary",
+  disabled = false,
+  onPress,
+}: PlannerActionCardProps) {
+  const isPrimary = variant === "primary";
+
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      disabled={disabled}
+      activeOpacity={0.85}
+      className={
+        isPrimary
+          ? "flex-1 rounded-2xl bg-primary p-4"
+          : "flex-1 rounded-2xl border border-border bg-surface p-4"
+      }
+    >
+      <View
+        className={
+          isPrimary
+            ? "h-11 w-11 items-center justify-center rounded-xl bg-white/15"
+            : "h-11 w-11 items-center justify-center rounded-xl bg-primary/10"
+        }
+      >
+        <Ionicons
+          name={icon}
+          size={22}
+          color={isPrimary ? "#FFFFFF" : "#E85D04"}
+        />
+      </View>
+
+      <Text
+        className={
+          isPrimary ? "mt-4 font-bold text-white" : "mt-4 font-bold text-text"
+        }
+      >
+        {title}
+      </Text>
+
+      <Text
+        className={
+          isPrimary
+            ? "mt-1 text-xs leading-5 text-white/80"
+            : "mt-1 text-xs leading-5 text-muted"
+        }
+      >
+        {description}
+      </Text>
+    </TouchableOpacity>
+  );
+}
+
+function MealCardSkeleton() {
+  return (
+    <View className="rounded-2xl border border-border bg-surface p-4">
+      <View className="flex-row items-center">
+        <View className="h-11 w-11 rounded-xl bg-border" />
+
+        <View className="ml-3 flex-1">
+          <View className="h-4 w-20 rounded-full bg-border" />
+          <View className="mt-2 h-5 w-40 rounded-full bg-border" />
+        </View>
+
+        <View className="h-10 w-10 rounded-full bg-border" />
+      </View>
+    </View>
   );
 }
